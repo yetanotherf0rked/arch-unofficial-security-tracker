@@ -31,14 +31,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Restore CVE record cache
-        uses: actions/cache@v4
-        with:
-          path: data/cve-cache.json
-          key: cve-cache-${{ github.run_id }}
-          restore-keys: |
-            cve-cache-
-
       - name: Refresh package + CVE data
         run: python update.py
 

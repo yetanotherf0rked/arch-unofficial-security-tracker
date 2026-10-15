@@ -4,9 +4,8 @@ Arch Linux repo security tracker — data refresh.
 
 Pulls the current package list from Arch's official repository databases
 (core / extra / multilib) and cross-references each package against OSV.dev
-to find upstream CVEs. OSV.dev aggregates GHSA, NVD, Debian Security
-Tracker, Ubuntu Security Notices and Alpine SecDB. Arch itself is not an
-OSV ecosystem, so we query against Debian, Ubuntu and Alpine as proxies —
+data to find upstream CVEs. Arch itself is not an OSV ecosystem, so we use
+the Debian and Alpine security trackers (via OSV's bulk exports) as proxies —
 those distros key their records by *source* package, which maps to Arch's
 pkgbase far better than to individual (split) binary package names.
 
@@ -28,7 +27,7 @@ import tarfile
 import time
 import urllib.error
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -39,14 +38,14 @@ MIRROR = os.environ.get(
 REPOS = ("core", "extra", "multilib")
 ARCH = "x86_64"
 
-OSV_BATCH_URL = "https://api.osv.dev/v1/querybatch"
-OSV_VULN_URL = "https://api.osv.dev/v1/vulns/{id}"
-PROXY_ECOSYSTEMS = ("Debian", "Ubuntu", "Alpine")
+OSV_EXPORT_URL = "https://osv-vulnerabilities.storage.googleapis.com/{ecosystem}/all.zip"
+# Ubuntu is left out by default: its export is ~780 MB and mostly mirrors
+# Debian's data (it contributed no finding Debian didn't already have).
+PROXY_ECOSYSTEMS = tuple(
+    e for e in os.environ.get("OSV_ECOSYSTEMS", "Debian,Alpine").split(",") if e
+)
 
-BATCH_SIZE = 1000
-MAX_PAGES = 20  # per query; OSV paginates results for packages with huge histories
-FETCH_WORKERS = 8
-HTTP_TIMEOUT = 60
+HTTP_TIMEOUT = 120
 HTTP_RETRIES = 3
 
 HERE = Path(__file__).parent
@@ -66,29 +65,6 @@ def http_get(url: str) -> bytes:
             last = e
             time.sleep(2 ** attempt)
     raise RuntimeError(f"GET failed after {HTTP_RETRIES} tries: {url}: {last}")
-
-
-def http_post_json(url: str, payload: dict) -> dict:
-    """POST JSON with retry."""
-    body = json.dumps(payload).encode()
-    last: Exception | None = None
-    for attempt in range(HTTP_RETRIES):
-        try:
-            req = urllib.request.Request(
-                url,
-                data=body,
-                method="POST",
-                headers={
-                    "Content-Type": "application/json",
-                    "User-Agent": "arch-sec-tracker",
-                },
-            )
-            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-                return json.loads(r.read())
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-            last = e
-            time.sleep(2 ** attempt)
-    raise RuntimeError(f"POST failed after {HTTP_RETRIES} tries: {url}: {last}")
 
 
 def fetch_repo_db(repo: str) -> list[dict[str, str]]:
@@ -159,6 +135,8 @@ _REALLY_RE = re.compile(r"^.*[+~]really", re.I)
 _DISTRO_SUFFIX_RE = re.compile(
     r"[+~](?:dfsg|ds|repack|deb\d|ubuntu|build|nmu)[0-9A-Za-z.+~]*$", re.I
 )
+# Arch writes pre-releases inline ("2.11.0beta2"), Debian with "~" ("2.11.0~beta2")
+_INLINE_PRE_RE = re.compile(r"(?<=\d)[._-]?(alpha|beta|pre|rc)(?=\d|$)", re.I)
 
 
 def upstream_version(ver: str) -> str:
@@ -175,6 +153,8 @@ def upstream_version(ver: str) -> str:
     ver = _REVISION_RE.sub("", ver)
     ver = _REALLY_RE.sub("", ver)
     ver = _DISTRO_SUFFIX_RE.sub("", ver)
+    if "~" not in ver:
+        ver = _INLINE_PRE_RE.sub(r"~\1", ver, count=1)
     return ver
 
 
@@ -185,7 +165,7 @@ _PRE_TOKENS = {"alpha", "beta", "pre", "rc"}
 
 
 def _tokens(v: str) -> list[str]:
-    return _TOKEN_RE.findall(v)
+    return _TOKEN_RE.findall(v.lower())
 
 
 def _tokcmp(ta: list[str], tb: list[str]) -> int:
@@ -281,6 +261,10 @@ def evaluate(record: dict, name: str, version: str) -> tuple[str, list[str]]:
     ranges, listed = _ranges_for(record, name)
     if not ranges:
         return "unknown", []
+    # Snapshot schemes like "r12985.5236ecb04" can't be compared with release
+    # numbers.
+    if not version[:1].isdigit():
+        return "unknown", []
 
     intervals: list[tuple[str, str | None, str]] = []  # (lo, hi, kind)
     fixes: list[str] = []
@@ -348,114 +332,43 @@ def _status(
 
 
 # ---------------------------------------------------------------------------
-# OSV.dev
+# OSV.dev bulk exports
 # ---------------------------------------------------------------------------
 
-def chunks(seq, n):
-    for i in range(0, len(seq), n):
-        yield seq[i : i + n]
-
-
-def query_osv_batch(
-    targets: list[tuple[str, str]],
-) -> tuple[dict[tuple[str, str], set[str]], dict[str, str]]:
+def load_osv_records(names: set[str]) -> dict[str, list[dict[str, Any]]]:
     """
-    Query OSV.dev in batches. For each (name, upstream_version) target, send
-    one query per proxy ecosystem, following `next_page_token` pagination.
-
-    Returns a `(target_vulns, modified)` tuple:
-      target_vulns: {(name, version): {vuln_id, …}}
-      modified:     {vuln_id: last_modified_timestamp}
+    Download each proxy ecosystem's full OSV export (one zip per ecosystem)
+    and index the records by affected package name, keeping only names we
+    look up. One download per ecosystem instead of thousands of API calls.
     """
-    pending: list[tuple[int, dict]] = []
-    for ti, (name, ver) in enumerate(targets):
-        for eco in PROXY_ECOSYSTEMS:
-            pending.append((ti, {"package": {"name": name, "ecosystem": eco}, "version": ver}))
-
-    results: dict[tuple[str, str], set[str]] = {}
-    modified: dict[str, str] = {}
-    print(f"  querying OSV.dev: {len(pending)} queries in batches of {BATCH_SIZE}", flush=True)
-
-    for page in range(MAX_PAGES):
-        if not pending:
-            break
-        if page:
-            print(f"  following pagination for {len(pending)} queries", flush=True)
-        next_pending: list[tuple[int, dict]] = []
-        for batch_i, batch in enumerate(chunks(pending, BATCH_SIZE)):
-            resp = http_post_json(OSV_BATCH_URL, {"queries": [q for _, q in batch]})
-            batch_results = resp.get("results", [])
-            for (ti, q), r in zip(batch, batch_results):
-                for v in r.get("vulns", []) or []:
-                    vid = v.get("id")
-                    if vid:
-                        results.setdefault(targets[ti], set()).add(vid)
-                        modified[vid] = v.get("modified", "")
-                token = r.get("next_page_token")
-                if token:
-                    next_pending.append((ti, {**q, "page_token": token}))
-            print(
-                f"    batch {batch_i + 1}: {sum(1 for r in batch_results if r.get('vulns'))} hits",
-                flush=True,
-            )
-            time.sleep(0.5)  # be polite
-        pending = next_pending
-    if pending:
-        print(f"  WARNING: {len(pending)} queries still paginated after {MAX_PAGES} pages", file=sys.stderr)
-
-    return results, modified
-
-
-CACHE_PATH = DATA / "cve-cache.json"
-
-
-def load_cache() -> dict[str, dict[str, Any]]:
-    if CACHE_PATH.exists():
-        try:
-            return json.loads(CACHE_PATH.read_text())
-        except json.JSONDecodeError:
-            pass
-    return {}
-
-
-def fetch_vuln_records(
-    ids_with_modified: list[tuple[str, str]],
-) -> dict[str, dict[str, Any]]:
-    """
-    Fetch full OSV records for each (id, modified) pair, reusing cached
-    records when their `modified` timestamp still matches. Only unknown or
-    changed records hit the network, FETCH_WORKERS at a time.
-    """
-    cache = load_cache()
-    out: dict[str, dict[str, Any]] = {}
-    stale: list[str] = []
-    for vid, mod in ids_with_modified:
-        cached = cache.get(vid)
-        if cached and cached.get("modified") == mod:
-            out[vid] = cached
-        else:
-            stale.append(vid)
-    print(
-        f"  record cache: {len(out)} hits, {len(stale)} to fetch",
-        flush=True,
-    )
-
-    def fetch(vid: str) -> tuple[str, dict[str, Any] | None]:
-        try:
-            return vid, json.loads(http_get(OSV_VULN_URL.format(id=vid)))
-        except Exception as e:
-            print(f"    skip {vid}: {e}", flush=True)
-            return vid, None
-
-    with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as pool:
-        for i, (vid, rec) in enumerate(pool.map(fetch, stale)):
-            if rec is not None:
-                out[vid] = rec
-                cache[vid] = rec
-            if (i + 1) % 500 == 0:
-                print(f"    {i + 1}/{len(stale)}", flush=True)
-    CACHE_PATH.write_text(json.dumps(cache))
-    return out
+    wanted = {n.lower() for n in names}
+    index: dict[str, list[dict[str, Any]]] = {}
+    for eco in PROXY_ECOSYSTEMS:
+        url = OSV_EXPORT_URL.format(ecosystem=eco)
+        print(f"  fetching {url}", flush=True)
+        blob = http_get(url)
+        kept = total = 0
+        with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+            for info in zf.infolist():
+                if not info.filename.endswith(".json"):
+                    continue
+                total += 1
+                try:
+                    rec = json.loads(zf.read(info))
+                except json.JSONDecodeError:
+                    continue
+                if rec.get("withdrawn"):
+                    continue
+                hit = {
+                    pkg.lower()
+                    for aff in rec.get("affected", []) or []
+                    if (pkg := (aff.get("package") or {}).get("name", "")).lower() in wanted
+                }
+                for pkg in hit:
+                    index.setdefault(pkg, []).append(rec)
+                kept += bool(hit)
+        print(f"    {eco}: {total} records, {kept} for Arch package names", flush=True)
+    return index
 
 
 def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
@@ -537,25 +450,18 @@ def main() -> int:
         b["packages"].append(p["name"])
     print(f"  pkgbases: {len(bases)}", flush=True)
 
-    print("Querying OSV.dev for candidate CVEs...", flush=True)
-    targets = sorted({(b["query"], b["upstream_version"]) for b in bases.values()})
-    candidate_vulns, modified = query_osv_batch(targets)
-
-    unique_ids = sorted({vid for ids in candidate_vulns.values() for vid in ids})
-    records = fetch_vuln_records([(vid, modified.get(vid, "")) for vid in unique_ids])
+    print("Loading OSV.dev exports...", flush=True)
+    records = load_osv_records({b["query"] for b in bases.values()})
 
     stats = {"affected": 0, "unfixed": 0, "fixed": 0, "mismatch": 0, "unknown": 0}
     affected: list[dict[str, Any]] = []
     for b in bases.values():
-        ids = candidate_vulns.get((b["query"], b["upstream_version"]))
-        if not ids:
+        recs = records.get(b["query"].lower())
+        if not recs:
             continue
         found: list[dict[str, Any]] = []
         unfixed: list[dict[str, Any]] = []
-        for vid in sorted(ids):
-            rec = records.get(vid)
-            if not rec:
-                continue
+        for rec in recs:
             status, fixes = evaluate(rec, b["query"], b["upstream_version"])
             stats[status] += 1
             if status == "affected":
@@ -581,8 +487,8 @@ def main() -> int:
             "vulnerabilities": "OSV.dev — proxied via " + ", ".join(PROXY_ECOSYSTEMS),
         },
         "limitations": (
-            "Arch is not an OSV ecosystem. CVEs are discovered via OSV queries against "
-            "Debian / Ubuntu / Alpine using Arch pkgbase names, then verified locally "
+            "Arch is not an OSV ecosystem. CVEs come from the " + " / ".join(PROXY_ECOSYSTEMS)
+            + " OSV data, matched by Arch pkgbase name, then verified locally "
             "against the affected ranges in each record. CVEs with no fix anywhere yet are "
             "listed separately as unfixed. False negatives possible when Arch names a "
             "package differently from those distros; false positives possible when Arch "

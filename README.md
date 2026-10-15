@@ -14,19 +14,21 @@ Once a day, a GitHub Action:
    a public Arch mirror (`https://geo.mirror.pkgbuild.com` by default).
    These are Arch's canonical pacman sync files — the same ones every Arch
    install downloads. No HTML scraping.
-2. For every **pkgbase** (Arch's source package — the distros below key
+2. Downloads [OSV.dev](https://osv.dev/)'s bulk exports for the
+   **Debian** and **Alpine** ecosystems (one zip each, ~80 MB total) and
+   indexes every record by package name. Ubuntu is skipped by default: its
+   export is ~780 MB and mostly mirrors Debian (`OSV_ECOSYSTEMS` env var
+   overrides the list).
+3. For every **pkgbase** (Arch's source package — the distros above key
    their records by source package too; `lib32-foo` is looked up as `foo`),
-   queries [OSV.dev](https://osv.dev/)'s batch API proxying against the
-   **Debian**, **Ubuntu** and **Alpine** ecosystems with the upstream
-   version (epoch and pkgrel stripped), following result pagination.
-   This returns candidate CVE ids.
-3. Fetches full OSV records for each candidate, 8 in parallel, with a
-   cache keyed on each record's `modified` timestamp so unchanged CVEs
-   skip the network on later runs.
+   takes the records for that name.
 4. **Verifies** every candidate locally against the record's affected
    ranges (`introduced` / `fixed` / `last_affected`). Distro version noise
    is normalized away first (`-rN`, Debian/Ubuntu revisions, `+dfsg`,
-   `+repack`, `+debNuM`, `~debNuM`, `+really`, epochs). A fix released on
+   `+repack`, `+debNuM`, `~debNuM`, `+really`, epochs; Arch's inline
+   `1.0beta2` is read as Debian's `1.0~beta2`). Snapshot versions that
+   don't start with a digit (`r12985.5236ecb04`) can't be compared and are
+   skipped. A fix released on
    Arch's own `major.minor` branch counts even when a distro backported it
    to an older line. Results:
    - **affected** — Arch is below a fix: listed.
@@ -42,14 +44,15 @@ Once a day, a GitHub Action:
 5. Writes `data/packages.json` and `data/vulns.json`, commits them, and
    deploys the static site (page + those two files) via GitHub Pages.
 
-Everything comes from APIs / structured feeds — no HTML parsers.
+Everything comes from structured feeds — no HTML parsers. A full refresh
+takes well under a minute.
 
 ## Data sources
 
 | Source | Role | Trusted / active? |
 |---|---|---|
 | `*.db.tar.gz` from Arch mirror | Package list (name + version per repo) | Yes — Arch's own distribution format, served by every mirror |
-| [OSV.dev](https://osv.dev/) `/v1/querybatch` and `/v1/vulns/{id}` | CVE data | Yes — Google-maintained, aggregates GHSA, NVD, Debian Security Tracker, Ubuntu Security Notices, Alpine SecDB and more |
+| [OSV.dev](https://osv.dev/) bulk exports (`osv-vulnerabilities.storage.googleapis.com/<ecosystem>/all.zip`) | CVE data | Yes — Google-maintained, aggregates GHSA, NVD, Debian Security Tracker, Ubuntu Security Notices, Alpine SecDB and more |
 
 Explicitly **not** used (stale or unmaintained):
 
@@ -60,7 +63,7 @@ Explicitly **not** used (stale or unmaintained):
 ## Known limitations
 
 - **Not an OSV ecosystem.** Arch is not natively tracked by OSV. We proxy
-  through Debian / Ubuntu / Alpine, which share upstream names with most
+  through Debian / Alpine, which share upstream names with most
   Arch packages but not all. Packages renamed in Arch (`openssh` vs
   `openssh-server`, `python-foo` vs `python3-foo`, etc.) may be missed.
 - **Unfixed CVEs can't be version-checked.** When no distro has a fix,
