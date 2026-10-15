@@ -179,7 +179,7 @@ SEVERITIES = ["Unknown", "Low", "Medium", "High", "Critical"]
 GROUPS = {
     "upgrade": "Fixed in the Arch repos — upgrade with `pacman -Syu`",
     "vulnerable": "Vulnerable — upstream has a fix, Arch does not ship it yet",
-    "unfixed": "Vulnerable — no fix released upstream yet",
+    "unfixed": "Vulnerable — no fixed version known yet",
     "uncertain": "Possibly affected — version comparison not conclusive",
 }
 
@@ -260,12 +260,12 @@ def _cmp_key(v: str) -> _Key:
 REASONS = {
     "below-fix": "below the upstream fix",
     "distro-patch": "other distros patched this exact version",
-    "no-fix": "no upstream fix yet",
+    "no-fix": "no fixed version known to the sources yet",
     "between-branches": "Arch's release line may not have the fix",
     "arch-snapshot": "Arch builds a VCS snapshot",
     "fix-snapshot": "the fix is an unreleased snapshot",
     "version-scheme": "version schemes differ",
-    "distro-patch-rebuilt": "other distros patched this exact version; Arch rebuilt since and might carry the patch",
+    "distro-patch-rebuilt": "other distros patched this exact version; Arch rebuilt since and may carry the patch",
     "patch-only": "fixed only by distro patches, no upstream release",
     "newer-than-assessed": "reported unfixed for older versions; Arch's newer one is unassessed",
 }

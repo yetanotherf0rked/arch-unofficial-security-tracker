@@ -81,7 +81,7 @@ class Evaluate(unittest.TestCase):
         self.assertEqual((before.status, before.reason), ("unfixed", "distro-patch"))
         self.assertTrue(before.patched_in)
         after = run([r], "0.9.15", builddate=3000, published=2000)
-        self.assertEqual((after.status, after.reason), ("unfixed", "distro-patch-rebuilt"))
+        self.assertEqual((after.status, after.reason), ("uncertain", "distro-patch-rebuilt"))
 
     def test_only_patches_below_arch(self):
         r = rec(aff("Debian:14", "foo", intro(), fixed("1.38.0-3"), versions=["1.38.0-1"]))

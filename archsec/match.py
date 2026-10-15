@@ -39,8 +39,8 @@ class Verdict:
     """
     status:
       vulnerable — Arch's version is affected; an upstream release fixes it
-      unfixed    — affected, and no upstream release fixes it (distros may
-                   carry their own patch: reason "patch-only" / "distro-patch*")
+      unfixed    — affected, and no release with the fix is known (distros may
+                   carry their own patch: reason "patch-only" / "distro-patch")
       uncertain  — the comparison can't be trusted (reason says why)
       fixed      — Arch's version has the fix (older versions may not)
       not_affected — Arch's version predates the issue
@@ -249,14 +249,15 @@ def _status(
         # No upstream release fixes it; distros may carry their own patch.
         return Verdict("unfixed", "patch-only" if any(k == "patch" for _, _, k in hits) else "no-fix")
 
-    # A distro had to patch the very upstream version Arch ships. Arch may
-    # carry the same patch if it rebuilt since the issue was published; NVD
-    # and MITRE call such builds affected about 15 times as often as not.
+    # A distro had to patch the very upstream version Arch ships. If Arch's
+    # build predates the issue it can't carry that patch; if Arch rebuilt
+    # since, it may (unzip 6.0-23 and libmad 0.15.1b-10 carry Debian's CVE
+    # patches). NVD and MITRE can't settle that: they judge upstream versions.
     if any(vercmp(version, p) == 0 for p in patches):
         nxt = _pick_next_fix(version, fixes)
-        rebuilt = not (builddate and published and builddate < published)
-        return Verdict("vulnerable" if nxt else "unfixed",
-                       "distro-patch-rebuilt" if rebuilt else "distro-patch", next_fix=nxt)
+        if builddate and published and builddate < published:
+            return Verdict("vulnerable" if nxt else "unfixed", "distro-patch", next_fix=nxt)
+        return Verdict("uncertain", "distro-patch-rebuilt", next_fix=nxt)
 
     # An open range in a distro's newest release means "not fixed yet" unless
     # some upstream release is known to fix it.

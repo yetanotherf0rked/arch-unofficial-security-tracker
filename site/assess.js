@@ -6,7 +6,7 @@ export const SEVERITIES = ["Unknown", "Low", "Medium", "High", "Critical"];
 export const GROUPS = {
   upgrade: "Fixed in the Arch repos — upgrade with pacman -Syu",
   vulnerable: "Vulnerable — upstream has a fix, Arch does not ship it yet",
-  unfixed: "Vulnerable — no fix released upstream yet",
+  unfixed: "Vulnerable — no fixed version known yet",
   uncertain: "Possibly affected — version comparison not conclusive",
 };
 

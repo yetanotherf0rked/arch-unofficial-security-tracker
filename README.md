@@ -38,7 +38,9 @@ machine. Exit status is 1 when an installed package is affected (upgradable,
 vulnerable or unfixed), so it can run from a timer or a pacman hook.
 
 **With arch-audit** — the tracker also publishes `all.json` in the official
-tracker's format:
+tracker's format. It holds only definite findings: arch-audit can't mark a
+match as uncertain, so uncertain matches and issues Debian rates unimportant
+are left out (`arch-cve-check` lists them in a separate section):
 
 ```sh
 arch-audit --source https://yetanotherf0rked.github.io/arch-unofficial-security-tracker/all.json
@@ -60,7 +62,7 @@ in the page; nothing is uploaded.
 |---|---|---|
 | Fixed in the Arch repos | Your installed version is below the version that fixes it, and the repos have it. | `pacman -Syu` |
 | Vulnerable | An upstream release fixes it; Arch doesn't ship that release yet. | Wait for the update, or mitigate. |
-| No upstream fix | No upstream release fixes it. Other distros may carry a patch (shown), which Arch could backport. | Mitigate; consider reporting to the Arch package's GitLab issues. |
+| No fix known | No release with the fix is known to the sources. Often a CVE published days ago that Debian hasn't triaged yet, or one only distros have patched (the patching distro is shown). | Check upstream; mitigate; consider reporting to the Arch package's GitLab issues. |
 | Possibly affected | The version comparison isn't conclusive; the reason is given (Arch newer than anything the distros assessed, Arch rebuilt after another distro patched the same version, snapshot versions, …). | Check the linked records. |
 | Not checked | AUR/local packages, and repo packages without CVE records in any source. | — |
 
@@ -84,7 +86,7 @@ Debian's urgency.
    - `data/advisories.json` — every repo package → pkgbase; per pkgbase the
      issues affecting the repo version and the issues the repos have fixed,
      grouped by the Arch version that fixes them;
-   - `all.json` — the same, in the format `arch-audit` reads;
+   - `all.json` — the definite findings, in the format `arch-audit` reads;
    - `arch-cve-check` and the page.
 
 [docs/architecture.md](docs/architecture.md) has the design, the matching

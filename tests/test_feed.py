@@ -79,7 +79,7 @@ class Build(unittest.TestCase):
         keys = {"name", "packages", "status", "severity", "type", "affected", "fixed", "ticket", "issues", "advisories"}
         for a in avgs:
             self.assertEqual(set(a), keys)
-            self.assertIn(a["status"], ("Fixed", "Vulnerable", "Unknown"))
+            self.assertIn(a["status"], ("Fixed", "Vulnerable"))  # uncertain matches stay out
             self.assertIn(a["severity"], ("Unknown", "Low", "Medium", "High", "Critical"))
         fixed = [a for a in avgs if a["status"] == "Fixed" and "foo" in a["packages"]]
         self.assertEqual([(a["fixed"], a["issues"]) for a in fixed], [("1:1.9.2", ["CVE-2026-0001"])])

@@ -158,10 +158,13 @@ CNA) are evaluated together, so a fix known to any source counts.
   *patch*: proof that the upstream version is vulnerable, not a fix.
 * **Only upstream fixes** feed the branch rule and the "past a fix"
   checks. Arch at exactly a patched version is `unfixed` (or `vulnerable`
-  when a later upstream release fixes it), reason `distro-patch`, or
-  `distro-patch-rebuilt` when Arch rebuilt after the CVE was published and
-  might carry the patch. (A first version called the rebuilt case
-  uncertain; NVD/MITRE called 116 of 123 decidable ones affected.)
+  when a later upstream release fixes it), reason `distro-patch`, when
+  Arch's build predates the CVE and so can't carry the patch. When Arch
+  rebuilt since, it may carry it (`unzip 6.0-23`, `libmad 0.15.1b-10` do),
+  so the verdict is `uncertain` (`distro-patch-rebuilt`). NVD and MITRE
+  can't settle this case: they judge upstream versions, not Arch builds.
+  (Briefly treating the rebuilt case as affected, on the strength of
+  NVD/MITRE agreeing, flooded arch-audit with patched packages.)
 * A range with its own lower bound (the kernel's `introduced 6.19.0,
   fixed 7.2.6`) is scoped to one release line, so being past a fix on
   another line no longer makes the verdict uncertain.
@@ -222,6 +225,16 @@ the official tracker's schema (`name`, `packages`, `status`, `severity`,
 and fixed groups older than two years. `arch-audit` lists a package when it
 is installed and below `fixed`, or when `fixed` is null.
 
+### What arch-audit sees
+
+`all.json` holds only definite findings (vulnerable, unfixed, and fixed
+in the repos). arch-audit prints every match as "is affected by …", so
+uncertain matches would read as findings; they stay in
+`advisories.json` for `arch-cve-check` and the page, which show them in a
+separate section. On one up-to-date desktop this cut arch-audit's output
+from 143 packages to 85 (61 pkgbases, 210 CVEs), of which 140 CVEs are
+under three months old with no fixed version known to the sources yet.
+
 ### Operations
 
 * `update.yml` runs the tests, builds the feed every 6 hours and deploys
@@ -242,7 +255,7 @@ is installed and below `fixed`, or when `fixed` is null.
 |---|---|---|
 | pkgbases with CVE data | 1,515 matched by name | 1,713 (aliases, versioned names, PyPI, kernel CNA) |
 | issues an outdated machine can be told about | 0 (fixed issues dropped) | 124,446, grouped into Arch fix versions |
-| distro-patch cases reported fixed | 88 | 0 — reported `unfixed` with the patching distro named (183) |
+| distro-patch cases reported fixed | 88 | 0 — `unfixed` when Arch's build predates the CVE (43), `uncertain` when Arch rebuilt since (140); the patching distro is named |
 | kernels (`linux`, `-lts`, `-zen`, `-hardened`, `-rt`, `-rt-lts`) | `linux` via Debian only | all six via the kernel CNA's per-branch ranges (e.g. 367 CVEs not yet fixed on the 6.18 LTS line) |
 | "unfixed" shown by default | 2,064 CVEs in 406 packages | 703 CVEs in 182 packages (unimportant and newer-than-assessed moved out) |
 | severity | raw vector | rating from CVSS 3.x score, else Debian urgency |
@@ -263,7 +276,9 @@ means the official record has version data for the product):
 What the breakdown says about the new rules:
 
 * **Distro patch on Arch's exact version** (v1 reported these fixed):
-  official records call 140 of 148 decidable cases affected.
+  official records call 24 of 25 decidable `distro-patch` cases affected.
+  That is a statement about the upstream version; it is meaningful here
+  because Arch's build predates the CVE.
 * **Newer than anything the distro assessed** (v1 called these
   unfixed): 666 of 755 decidable cases are *not* affected, so keeping
   them out of the default view removes mostly false alarms.

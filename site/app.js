@@ -10,16 +10,16 @@ const CHIPS = 2;  // issue chips shown on a collapsed row
 const REASONS = {
   "below-fix": "Arch's version is below the upstream fix",
   "distro-patch": "other distros patched this exact version; Arch's build predates the issue",
-  "distro-patch-rebuilt": "other distros patched this exact version; Arch rebuilt since and might carry the patch",
+  "distro-patch-rebuilt": "other distros patched this exact version; Arch rebuilt since and may carry the patch",
   "patch-only": "fixed only by distro patches, no upstream release",
-  "no-fix": "no fix released anywhere yet",
+  "no-fix": "no fixed version known to the sources yet",
   "newer-than-assessed": "reported unfixed for older versions; Arch's newer version is unassessed",
   "between-branches": "Arch's release line may not have the fix",
   "arch-snapshot": "Arch builds a VCS snapshot",
   "fix-snapshot": "the fix is an unreleased snapshot",
   "version-scheme": "version schemes differ",
 };
-const STATUS_LABEL = { vulnerable: "vulnerable", unfixed: "no upstream fix", uncertain: "uncertain" };
+const STATUS_LABEL = { vulnerable: "vulnerable", unfixed: "no fix known", uncertain: "uncertain" };
 
 // Commands point at wherever this page is served from.
 const base = new URL(".", location.href).href;
@@ -54,7 +54,7 @@ const st = data.stats || {};
 const withOpen = pkgbases.filter(p => p.issues.some(i => i.status === "vulnerable")).length;
 $("meta").innerHTML =
   `<span><strong>${withOpen}</strong> packages vulnerable with an upstream fix available</span>` +
-  `<span><strong>${st.vulnerable ?? 0}</strong> vulnerable · <strong>${st.unfixed ?? 0}</strong> no upstream fix · <strong>${st.uncertain ?? 0}</strong> uncertain</span>` +
+  `<span><strong>${st.vulnerable ?? 0}</strong> vulnerable · <strong>${st.unfixed ?? 0}</strong> no fix known · <strong>${st.uncertain ?? 0}</strong> uncertain</span>` +
   `<span><strong>${st.covered_pkgbases ?? "?"}</strong> of ${st.pkgbases ?? "?"} pkgbases have CVE data</span>` +
   `<span>refreshed <strong>${esc(dateTimeFmt.format(new Date(data.generated_at * 1000)))}</strong></span>`;
 $("limitsText").textContent = data.limitations || "";

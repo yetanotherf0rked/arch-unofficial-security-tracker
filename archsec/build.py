@@ -205,9 +205,11 @@ def arch_audit_feed(bases: dict[str, Any]) -> list[dict[str, Any]]:
     Issues grouped the way security.archlinux.org's all.json groups them
     (one AVG per pkgbase, status and fixed version). Read by arch-audit:
     a package is listed when installed and below `fixed` (or `fixed` is
-    null). Issues Debian rates unimportant are left out.
+    null). arch-audit can't tell a definite finding from a guess, so only
+    definite ones go in: no uncertain matches, nothing Debian rates
+    unimportant. arch-cve-check shows the rest separately.
     """
-    status_map = {"vulnerable": "Vulnerable", "unfixed": "Vulnerable", "uncertain": "Unknown"}
+    status_map = {"vulnerable": "Vulnerable", "unfixed": "Vulnerable"}
     cutoff = time.strftime("%Y-%m-%d", time.gmtime(time.time() - ARCH_AUDIT_FIXED_DAYS * 86400))
     out = []
 
@@ -229,7 +231,7 @@ def arch_audit_feed(bases: dict[str, Any]) -> list[dict[str, Any]]:
     for base, info in sorted(bases.items()):
         groups: dict[str, list[dict]] = {}
         for i in info.get("issues", []):
-            if not i.get("minor"):
+            if not i.get("minor") and i["status"] in status_map:
                 groups.setdefault(status_map[i["status"]], []).append(i)
         for st, issues in groups.items():
             sev = max(severity.RATINGS.index(i["severity"]) for i in issues)
