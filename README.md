@@ -83,6 +83,22 @@ Explicitly **not** used (stale or unmaintained):
 Treat the tracker as a best-effort cross-check, not an authoritative
 advisory feed.
 
+## Cross-checking against official sources
+
+`tools/compare_sources.py` (run by the manual **Compare against NVD /
+MITRE / Repology** workflow) audits the tracker's output:
+
+- **Precision** — for every package/CVE pair reported, checks whether
+  NIST's NVD (CPE version ranges) and MITRE's CVE List
+  ([cvelistV5](https://github.com/CVEProject/cvelistV5), CNA/ADP
+  `affected` ranges) agree that Arch's version is affected.
+- **Recall** — lists Arch packages Repology flags as vulnerable that the
+  tracker doesn't, and vice versa.
+
+Results land in `reports/compare.md` / `reports/compare.json` and the
+workflow run summary. NVD is rate-limited to 5 requests / 30 s without a
+key; add an `NVD_API_KEY` repository secret to go ten times faster.
+
 ## Running locally
 
 ```sh
