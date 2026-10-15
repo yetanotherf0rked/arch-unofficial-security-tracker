@@ -3,8 +3,9 @@
 Cross-check the tracker's output (data/vulns.json) against independent sources.
 
 Precision — for every package/CVE pair the tracker reports, ask:
-  * NIST NVD    (services.nvd.nist.gov, CVE API 2.0): do the record's CPE
-                version ranges include Arch's version?
+  * NIST NVD    (CVE API 2.0 records, read from the fkie-cad/nvd-json-data-feeds
+                mirror on GitHub): do the record's CPE version ranges include
+                Arch's version?
   * MITRE CVE   (CVEProject/cvelistV5, the official CVE List in JSON 5):
                 do the CNA's / ADP's `affected` version ranges include it?
 Recall — which Arch packages does Repology flag as vulnerable that the
@@ -13,8 +14,8 @@ tracker doesn't list, and vice versa?
 Writes reports/compare.json and reports/compare.md.
 
 Env:
-  NVD_API_KEY   optional; raises NVD's rate limit from 5 to 50 req / 30 s
-  NVD_MAX       max CVEs to look up in NVD (default 600)
+  NVD_API_KEY   optional; lets CVEs not yet in the mirror fall back to NVD's
+                own API (without a key that API allows 5 requests / 30 s)
   SKIP_NVD / SKIP_MITRE / SKIP_REPOLOGY   set to 1 to skip a source
 """
 
@@ -40,12 +41,13 @@ REPORTS = ROOT / "reports"
 UA = "arch-unofficial-security-tracker/compare (+https://github.com/yetanotherf0rked/arch-unofficial-security-tracker)"
 
 NVD_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId={id}"
+# Community mirror of the NVD API, synced every 2 hours: one static file per CVE,
+# so no API rate limit and none of the API's frequent 503s.
+NVD_MIRROR_URL = "https://raw.githubusercontent.com/fkie-cad/nvd-json-data-feeds/main/{year}/{bucket}xx/{id}.json"
 MITRE_URL = "https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/{year}/{bucket}xxx/{id}.json"
 REPOLOGY_URL = "https://repology.org/api/v1/projects/{bound}?inrepo=arch&vulnerable=1"
 
 NVD_KEY = os.environ.get("NVD_API_KEY", "")
-NVD_DELAY = 0.7 if NVD_KEY else 6.5
-NVD_MAX = int(os.environ.get("NVD_MAX", "600"))
 
 # Vendors whose CPE / product entries describe a distro build, not upstream.
 DISTRO_VENDORS = {
@@ -100,8 +102,10 @@ def _in_nvd_match(m: dict, version: str) -> bool | None:
     bounds = [k for k in ("versionStartIncluding", "versionStartExcluding",
                           "versionEndIncluding", "versionEndExcluding") if k in m]
     if ver not in ("*", "-") and not bounds:
+        # A list of exact versions proves those versions are affected; it says
+        # nothing about versions it doesn't list.
         exact = ver + (upd if upd not in ("*", "-") else "")
-        return vercmp(version, upstream_version(exact)) == 0
+        return True if vercmp(version, upstream_version(exact)) == 0 else None
     if not bounds:
         return None  # "all versions" — says nothing useful about Arch's version
     ok = True
@@ -145,20 +149,34 @@ def nvd_verdict(rec: dict | None, pkg: str, version: str) -> dict[str, Any]:
     }
 
 
+def nvd_mirror_url(cid: str) -> str:
+    year = cid.split("-")[1]
+    return NVD_MIRROR_URL.format(year=f"CVE-{year}", bucket=cid[:-2], id=cid)
+
+
 def fetch_nvd(ids: list[str]) -> dict[str, dict | None]:
-    out: dict[str, dict | None] = {}
-    headers = {"apiKey": NVD_KEY} if NVD_KEY else {}
-    for i, cid in enumerate(ids):
+    """NVD records from the GitHub mirror; API fallback (keyed only) for misses."""
+    def one(cid: str) -> tuple[str, dict | None]:
         try:
-            data = get_json(NVD_URL.format(id=cid), headers)
-            vulns = (data or {}).get("vulnerabilities") or []
-            out[cid] = vulns[0] if vulns else None
+            rec = get_json(nvd_mirror_url(cid))
+            return cid, {"cve": rec} if rec else None
         except Exception as e:
-            print(f"  nvd {cid}: {e}", file=sys.stderr)
-            out[cid] = None
-        if (i + 1) % 50 == 0:
-            print(f"  nvd {i + 1}/{len(ids)}", flush=True)
-        time.sleep(NVD_DELAY)
+            print(f"  nvd mirror {cid}: {e}", file=sys.stderr)
+            return cid, None
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        out = dict(pool.map(one, ids))
+    misses = [c for c, r in out.items() if r is None]
+    print(f"  nvd mirror: {len(ids) - len(misses)} found, {len(misses)} missing", flush=True)
+    if misses and NVD_KEY:
+        for cid in misses:
+            try:
+                data = get_json(NVD_URL.format(id=cid), {"apiKey": NVD_KEY})
+                vulns = (data or {}).get("vulnerabilities") or []
+                out[cid] = vulns[0] if vulns else None
+            except Exception as e:
+                print(f"  nvd api {cid}: {e}", file=sys.stderr)
+            time.sleep(0.7)  # keyed limit: 50 requests / 30 s
     return out
 
 
@@ -181,7 +199,13 @@ def _in_mitre_entry(entry: dict, version: str) -> bool | None:
         if hi_lt is None and hi_le is None:
             inside = lo not in ("", "*") and vercmp(version, upstream_version(lo)) == 0
         else:
-            inside = lo in ("0", "", "*") or vercmp(version, upstream_version(lo)) >= 0
+            hi = hi_lt if hi_lt not in (None, "*") else hi_le
+            # Some CNAs (e.g. Chrome) write version == lessThan to mean "below X":
+            # a lower bound that isn't below the upper one carries no information.
+            no_lower = lo in ("0", "", "*") or (
+                hi not in (None, "*") and vercmp(upstream_version(lo), upstream_version(hi)) >= 0
+            )
+            inside = no_lower or vercmp(version, upstream_version(lo)) >= 0
             if hi_lt not in (None, "*"):
                 inside = inside and vercmp(version, upstream_version(hi_lt)) < 0
             if hi_le not in (None, "*"):
@@ -311,10 +335,8 @@ def main() -> int:
     nvd: dict[str, dict | None] = {}
     nvd_ids: list[str] = []
     if os.environ.get("SKIP_NVD") != "1":
-        # Fixable pairs first: they are the tracker's headline claims.
-        ordered = sorted(cve_ids, key=lambda c: (all(p["kind"] == "unfixed" for p in pairs if p["cve"] == c), c))
-        nvd_ids = ordered[:NVD_MAX]
-        print(f"Fetching NVD records for {len(nvd_ids)} CVEs (delay {NVD_DELAY}s)...", flush=True)
+        nvd_ids = cve_ids
+        print(f"Fetching NVD records for {len(nvd_ids)} CVEs...", flush=True)
         nvd = fetch_nvd(nvd_ids)
 
     for p in pairs:

@@ -2,10 +2,6 @@ name: Compare against NVD / MITRE / Repology
 
 on:
   workflow_dispatch:
-    inputs:
-      nvd_max:
-        description: "Max CVEs to look up in NVD (≈6.5 s each without an API key)"
-        default: "600"
 
 permissions:
   contents: write
@@ -13,7 +9,7 @@ permissions:
 jobs:
   compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -24,7 +20,6 @@ jobs:
       - name: Compare sources
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-          NVD_MAX: ${{ inputs.nvd_max }}
         run: |
           python tools/compare_sources.py
           cat reports/compare.md >> "$GITHUB_STEP_SUMMARY"
