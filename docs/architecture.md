@@ -249,6 +249,30 @@ is installed and below `fixed`, or when `fixed` is null.
 | feed size (gzip) | 2.1 MB + 3.6 MB raw, committed | ~1 MB (`advisories.json`), ~330 KB (`all.json`), not committed |
 | tests | none | 42 Python + JS vercmp/assess, pacman's vercmp vectors |
 
+### Cross-check against NVD and MITRE
+
+`tools/compare_sources.py` on the same feed (4,194 CVEs; "decidable"
+means the official record has version data for the product):
+
+| Tracker says | MITRE agrees | NVD agrees |
+|---|---|---|
+| vulnerable (upstream fix exists) | 1,008 of 1,047 (96%) | 422 of 463 (91%) |
+| unfixed | 345 of 408 (85%) | 285 of 385 (74%) |
+| fixed — sample of 1,500 recent, ≤ 40 per package | 902 of 1,066 (85%) | 491 of 610 (80%) |
+
+What the breakdown says about the new rules:
+
+* **Distro patch on Arch's exact version** (v1 reported these fixed):
+  official records call 140 of 148 decidable cases affected.
+* **Newer than anything the distro assessed** (v1 called these
+  unfixed): 666 of 755 decidable cases are *not* affected, so keeping
+  them out of the default view removes mostly false alarms.
+* **Misses**: of 965 fixed verdicts decidable by a record matched on the
+  product name, 53 (5.5%) are still called affected — mostly GIMP (11),
+  Node.js 24 LTS (11), CPython (7) and glibc (5), where the CNA lists a
+  later fix than the one Debian shipped. These are the next cases to
+  study.
+
 ## 5. Known limits and next steps
 
 * **Coverage is still the main gap.** 10,674 pkgbases have no record
