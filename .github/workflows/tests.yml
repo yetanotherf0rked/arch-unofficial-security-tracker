@@ -14,5 +14,5 @@ jobs:
     container: archlinux:base-devel
     steps:
       - run: pacman -Syu --noconfirm --needed python expac nodejs
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: python -m unittest discover -s tests -t . -v
