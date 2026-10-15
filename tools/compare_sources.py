@@ -291,13 +291,13 @@ def main() -> int:
 
     pairs: list[dict[str, Any]] = []
     for a in data["affected"]:
-        for kind in ("vulns", "unfixed"):
+        for kind in ("vulns", "uncertain", "unfixed"):
             for v in a.get(kind, []) or []:
                 if v.get("cve"):
                     pairs.append({
                         "package": a["name"], "repo": a["repo"], "version": a["version"],
                         "upstream_version": a["upstream_version"], "cve": v["cve"],
-                        "kind": "fixable" if kind == "vulns" else "unfixed",
+                        "kind": {"vulns": "fixable"}.get(kind, kind),
                         "fixed_versions": v.get("fixed_versions", []),
                     })
     cve_ids = sorted({p["cve"] for p in pairs})
@@ -352,7 +352,7 @@ def main() -> int:
         "unique_cves": len(cve_ids),
         "nvd_checked": len(nvd_ids),
         "precision": {
-            src: {kind: tally(src, kind) for kind in ("fixable", "unfixed")}
+            src: {kind: tally(src, kind) for kind in ("fixable", "uncertain", "unfixed")}
             for src in ("nvd", "mitre")
         },
         "repology": {
@@ -401,8 +401,8 @@ def render_md(r: dict[str, Any], ours_fixable: set[str], repology: dict[str, dic
         "",
         "| Source | Tracker says | Agrees (affected) | Disagrees (not affected) | No version data / missing | Agreement where decidable |",
         "|---|---|---|---|---|---|",
-        row("nvd", "fixable"), row("nvd", "unfixed"),
-        row("mitre", "fixable"), row("mitre", "unfixed"),
+        row("nvd", "fixable"), row("nvd", "uncertain"), row("nvd", "unfixed"),
+        row("mitre", "fixable"), row("mitre", "uncertain"), row("mitre", "unfixed"),
         "",
         "\"No version data\" means the record has no usable ranges for this product "
         "(NVD awaiting analysis, CNA gave only git commits, etc.).",
