@@ -105,8 +105,11 @@ MITRE / Repology** workflow) audits the tracker's output:
   tracker doesn't, and vice versa.
 
 Results land in `reports/compare.md` / `reports/compare.json` and the
-workflow run summary. NVD is rate-limited to 5 requests / 30 s without a
-key; add an `NVD_API_KEY` repository secret to go ten times faster.
+workflow run summary. NVD records are read from the
+[fkie-cad/nvd-json-data-feeds](https://github.com/fkie-cad/nvd-json-data-feeds)
+mirror (synced with NVD every 2 hours) rather than NVD's rate-limited API;
+with an `NVD_API_KEY` repository secret, CVEs not yet in the mirror fall
+back to the API.
 
 ## Running locally
 
