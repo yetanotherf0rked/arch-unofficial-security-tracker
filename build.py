@@ -7,6 +7,10 @@ Build the tracker feed.
   userland CVEs       Debian security tracker JSON (every Debian release, including sid);
                       Debian's apt Sources index (homepages) to match differently named packages
   kernel CVEs         the kernel CNA's records (git clone of linux/security/vulns.git)
+  Firefox/Thunderbird Mozilla's CVE records (CVE Services API), for what Debian leaves open
+  Arch's own patches  CVE IDs in packaging releases (gitlab.archlinux.org: packaging/state,
+                      then only the released packages' tags)
+  first fixed build   carried over from the previously published feed
 
 Writes OUT/data/advisories.json (read by arch-cve-check and the page) and
 OUT/all.json (security.archlinux.org's format, for `arch-audit --source`).
@@ -25,8 +29,9 @@ import subprocess
 import sys
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
-from arch_cve_check import key, norm, vercmp
+from arch_cve_check import FEED, key, load_feed, norm, vercmp
 
 DEBIAN_JSON = "https://security-tracker.debian.org/tracker/data/json"
 KERNEL_GIT = "https://git.kernel.org/pub/scm/linux/security/vulns.git"
@@ -202,23 +207,192 @@ def kernel_records(path: str) -> list[tuple[str, str, list[dict]]]:
     return out
 
 
-def kernel_evaluate(k: str, rules: list[dict]) -> dict | None:
-    """The CNA's rules for upstream kernel `k`: introduced in X; fixed in X on line L.*; fixed in mainline X."""
-    line = ".".join(k.split(".")[:2])
+def cna_evaluate(k: str, rules: list[dict], newer_line_fixes: bool = False) -> dict | None:
+    """
+    A CNA's version rules for upstream version `k`: unaffected below X
+    (introduced); fixed in X on line "L.*"; fixed in X and later ("*").
+    The kernel's "*" fix is on a newer line than an LTS kernel can move to;
+    Mozilla's is the next release (`newer_line_fixes`).
+    """
     line_fix = mainline = None
     for r in rules:
         if r.get("status") != "unaffected" or r.get("versionType") == "git":
             continue
+        le = r.get("lessThanOrEqual") or ""
         if r["version"] == "0" and r.get("lessThan") and vercmp(k, norm(r["lessThan"])) < 0:
             return None  # before the bug was introduced
-        if r.get("lessThanOrEqual") == f"{line}.*":
+        if le.endswith(".*") and k.startswith(le[:-1]):
             line_fix = norm(r["version"])
-        elif r.get("lessThanOrEqual") == "*":
+        elif le == "*":
             mainline = norm(r["version"])
-    fix = line_fix or (mainline if mainline and vercmp(k, mainline) >= 0 else None)
+    fix = line_fix or (mainline if mainline and (newer_line_fixes or vercmp(k, mainline) >= 0) else None)
     if fix:
         return {"status": "fixed" if vercmp(k, fix) >= 0 else "vulnerable", "fixed": fix}
     return {"status": "vulnerable" if mainline else "unfixed"}  # fixed only on newer lines, or not at all
+
+
+# --- Mozilla ------------------------------------------------------------------
+
+MOZILLA = {"firefox": "Firefox", "thunderbird": "Thunderbird"}  # Arch pkgbase -> Mozilla product
+CVE_API = "https://cveawg.mitre.org/api/cve/{}"
+
+
+def mozilla_rules(feed: dict) -> dict:
+    """{(pkgbase, CVE): version rules} from Mozilla's CVE records, for issues Debian leaves open."""
+    want = [(b, i["id"]) for b in MOZILLA if b in feed["pkgbases"]
+            for i in feed["pkgbases"][b]["issues"] if i["status"] != "fixed"]
+
+    def fetch(item):
+        req = urllib.request.Request(CVE_API.format(item[1]), headers={"User-Agent": "arch-cve-tracker"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            cna = json.load(r)["containers"]["cna"]
+        return item, next((a.get("versions", []) for a in cna.get("affected", []) if a.get("product") == MOZILLA[item[0]]), None)
+
+    with ThreadPoolExecutor(8) as pool:
+        return {item: rules for item, rules in pool.map(fetch, want) if rules}
+
+
+# --- Arch packaging -----------------------------------------------------------
+
+STATE_GIT = "https://gitlab.archlinux.org/archlinux/packaging/state.git"
+ARCH_GIT = "https://gitlab.archlinux.org/archlinux/packaging/packages/{}.git"
+GIT = ["git", "-c", "http.userAgent=arch-cve-tracker (+https://github.com/yetanotherf0rked/arch-unofficial-security-tracker)"]
+FETCH_MINUTES = float(os.environ.get("FETCH_MINUTES", "10"))  # time spent fetching packaging repos per run
+_CVE = re.compile(r"CVE-\d{4}-\d{4,}", re.I)
+
+
+def gitlab_path(name: str) -> str:
+    """pkgbase -> project path on gitlab.archlinux.org (devtools' rule: libsigc++ -> libsigcplusplus)."""
+    name = re.sub(r"([a-zA-Z0-9]+)\+([a-zA-Z]+)", r"\1-\2", name).replace("+", "plus")
+    name = re.sub(r"[_-]{2,}", "-", re.sub(r"[^a-zA-Z0-9_.-]", "-", name))
+    return "unix-tree" if name == "tree" else name
+
+
+def release_tags(state: str) -> dict:
+    """{pkgbase: release tag} for core/extra/multilib, from Arch's packaging/state repo ("pkgbase version tag commit")."""
+    tags = {}
+    for repo in ("core-x86_64", "core-any", "extra-x86_64", "extra-any", "multilib-x86_64"):
+        for f in glob.glob(os.path.join(state, repo, "*")):
+            with open(f) as fh:
+                parts = fh.read().split()
+            if len(parts) >= 3:
+                tags[parts[0]] = parts[2]
+    return tags
+
+
+def arch_fixes(version: str, commits: list[tuple[str, str]], srcinfo: str) -> dict:
+    """
+    {CVE: first Arch release with the fix} from the packaging history of
+    `version`: `commits` are (message, changed file names), oldest first.
+    A CVE counts when a fix/patch/backport commit message names it (reverts
+    don't) or a patch file named after it is added; the release is the next
+    "upgpkg: pkgver-pkgrel" commit. Commits for an older pkgver are ignored.
+    CVEs only found in .SRCINFO's sources are dated to this release.
+    """
+    epoch_pkgver = version.rsplit("-", 1)[0]
+    found, pending = {}, set()
+    for msg, files in commits:
+        m = re.match(r"\s*upgpkg: (\S+)-(\d+(?:\.\d+)?)\b", msg)
+        if m and m.group(1) != epoch_pkgver and m.group(1).rpartition(":")[2] != epoch_pkgver.rpartition(":")[2]:
+            found, pending = {}, set()  # an older pkgver: its fixes are judged by upstream versions
+            continue
+        if re.search(r"\b(fix|patch|backport|apply|cherry)", msg, re.I) and not re.search(r"\brevert", msg, re.I):
+            pending |= {c.upper() for c in _CVE.findall(msg)}
+        pending |= {c.upper() for c in _CVE.findall(files)}
+        if m:
+            for c in pending - found.keys():
+                found[c] = f"{m.group(1)}-{m.group(2)}"
+            pending = set()
+    for c in {c.upper() for c in _CVE.findall(srcinfo)} | pending:
+        found.setdefault(c, version)
+    return found
+
+
+def arch_packaging(feed: dict, workdir: str, previous: dict | None) -> dict:
+    """
+    {pkgbase: {CVE: first Arch release with the fix}} for pkgbases with open
+    issues. Arch's packaging/state repo gives each package's release tag; a
+    pkgbase keeps what was read at the same tag in the previous feed, and only
+    released ones are fetched (that tag, shallow, small files only) for at
+    most FETCH_MINUTES per run, most urgent first. When gitlab.archlinux.org refuses,
+    the rest wait for the next run; their issues stay open meanwhile.
+    """
+    state = os.path.join(workdir, "state")
+    subprocess.run(["rm", "-rf", state])
+    if subprocess.run([*GIT, "clone", "--quiet", "--depth", "1", STATE_GIT, state], capture_output=True).returncode:
+        print("warning: packaging/state unavailable; Arch patches kept from the previous feed only", file=sys.stderr)
+    tags = release_tags(state)
+    old = (previous or {}).get("pkgbases", {})
+    found, todo = {}, []
+    for base, b in feed["pkgbases"].items():
+        open_ = [i for i in b["issues"] if i["status"] != "fixed"]
+        prev = old.get(base, {})
+        if prev.get("patched_tag") and prev["patched_tag"] == tags.get(base, prev["patched_tag"]):
+            found[base] = (prev["patched_tag"], prev.get("patched", {}))
+        elif open_ and base in tags:
+            todo.append((not any(i["status"] in ("vulnerable", "unfixed") and not i.get("minor") for i in open_), base))
+    deadline, refused = time.time() + FETCH_MINUTES * 60, False
+    for _, base in sorted(todo):
+        if time.time() > deadline or refused:
+            break
+        d, tag, ref = os.path.join(workdir, base), tags[base], f"refs/tags/{tags[base]}"
+        subprocess.run(["git", "init", "--quiet", "--bare", d], capture_output=True)
+        for wait in (0, 60):
+            time.sleep(wait or 0.5)
+            if not subprocess.run([*GIT, "-C", d, "fetch", "--quiet", "--depth", "50", "--filter=blob:limit=256k",
+                                   ARCH_GIT.format(gitlab_path(base)), f"{ref}:{ref}"], capture_output=True).returncode:
+                break
+        else:
+            refused = True
+            continue
+        git = lambda *a: subprocess.run(["git", "-C", d, *a], capture_output=True, text=True).stdout  # noqa: E731,B023
+        log = git("log", "--reverse", "--format=%x01%B%x02", "--name-only", ref)
+        commits = [tuple(c.split("\x02", 1)) for c in log.split("\x01")[1:]]
+        found[base] = (tag, arch_fixes(feed["pkgbases"][base]["version"], commits, git("show", f"{ref}:.SRCINFO")))
+    left = len([b for _, b in todo if b not in found])
+    if left:
+        print(f"note: {left} packaging repos left for the next run" + (" (gitlab.archlinux.org refused)" if refused else ""), file=sys.stderr)
+    for base, (tag, fixes) in found.items():
+        feed["pkgbases"][base]["patched_tag"], feed["pkgbases"][base]["patched"] = tag, fixes
+    return {b: fixes for b, (_, fixes) in found.items() if fixes}
+
+
+# --- the feed after the sources: Mozilla, Arch patches, history ---------------
+
+def refine(feed: dict, mozilla: dict, patched: dict, previous: dict | None) -> None:
+    """
+    Apply Mozilla's verdicts and Arch's own patches ({pkgbase: {CVE: release}})
+    to the feed, then record the first Arch build with each fix (`since`, an
+    exact pkgver-pkgrel): the release that added Arch's patch, else carried
+    over from the previous feed, else this build when the issue was open last time.
+    """
+    prev = {(b, i["id"]): i for b, e in (previous or {}).get("pkgbases", {}).items() for i in e["issues"]}
+    for base, b in feed["pkgbases"].items():
+        epoch = b["version"].rpartition(":")[0]
+        k = key(b["version"]).rpartition(":")[2]
+        issues = []
+        for i in b["issues"]:
+            if (base, i["id"]) in mozilla:
+                v = cna_evaluate(k, mozilla[(base, i["id"])], newer_line_fixes=True)
+                if v is None:
+                    continue
+                i = {"id": i["id"], **v, "via": "Mozilla", **({"minor": True} if i.get("minor") else {})}
+                if epoch and "fixed" in i:
+                    i["fixed"] = f"{epoch}:{i['fixed']}"
+            if i["status"] != "fixed" and i["id"] in patched.get(base, {}):
+                i = {"id": i["id"], "status": "fixed", "via": "Arch patch", "since": patched[base][i["id"]],
+                     **({"minor": True} if i.get("minor") else {})}
+            p = prev.get((base, i["id"]))
+            if i["status"] == "fixed" and "since" not in i:
+                if p and p.get("since"):
+                    i["since"] = p["since"]
+                elif p and p["status"] != "fixed":
+                    i["since"] = b["version"]
+            issues.append(i)
+        b["issues"] = issues
+    count = lambda st: sum(1 for b in feed["pkgbases"].values() for i in b["issues"] if i["status"] == st and not i.get("minor"))  # noqa: E731
+    feed["stats"] = {"pkgbases": feed["stats"]["pkgbases"], "covered": len(feed["pkgbases"]),
+                     **{st: count(st) for st in ("vulnerable", "unfixed", "uncertain")}}
 
 
 # --- feed ---------------------------------------------------------------------
@@ -239,7 +413,7 @@ def build(pkgs: list[dict], debian: dict, kernel: list, aliases: dict, homepage:
         if base in KERNELS:
             k = re.match(r"\d+\.\d+(?:\.\d+)?", a)
             for cve, text, rules in kernel if k else []:
-                v = kernel_evaluate(k.group(0), rules)
+                v = cna_evaluate(k.group(0), rules)
                 if v:
                     issues.append({"id": cve, **v})
                     if v["status"] != "fixed":
@@ -290,6 +464,9 @@ def main() -> int:
     ap.add_argument("--debian", help="Debian tracker JSON file instead of downloading it")
     ap.add_argument("--homepages", help="JSON {debian source: homepage} instead of reading Debian's Sources")
     ap.add_argument("--kernel", default="vulns", help="checkout of the kernel CNA repo (cloned if missing)")
+    ap.add_argument("--previous", default=os.environ.get("ARCH_CVE_FEED", FEED),
+                    help="previously published feed (URL or file), for first-fixed builds; '' for none")
+    ap.add_argument("--packaging", default="packaging", help="work dir for Arch's packaging/state and package repos")
     args = ap.parse_args()
     if args.debian:
         with open(args.debian, "rb") as f:
@@ -303,6 +480,13 @@ def main() -> int:
         aliases = {k: v for k, v in json.load(f).items() if not k.startswith("_")}
     homepage = json.load(open(args.homepages)) if args.homepages else debian_homepages()
     feed = build(arch_packages(), debian, kernel_records(args.kernel), aliases, homepage)
+    try:
+        previous = load_feed(args.previous) if args.previous else None
+        previous = previous if previous and previous.get("schema") == feed["schema"] else None
+    except Exception as e:  # noqa: BLE001 - first run, or the site is down: start the history afresh
+        print(f"previous feed unavailable ({e}); first-fixed builds start from this run", file=sys.stderr)
+        previous = None
+    refine(feed, mozilla_rules(feed), arch_packaging(feed, args.packaging, previous), previous)
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
     with open(os.path.join(args.out, "data", "advisories.json"), "w") as f:
         json.dump(feed, f, separators=(",", ":"))

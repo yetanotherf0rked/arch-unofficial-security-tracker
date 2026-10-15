@@ -18,6 +18,7 @@ export function key(version) {
 }
 
 export function affects(version, issue) {
+  if ("since" in issue) return vercmp(version, issue.since) < 0;
   if ("fixed" in issue) return vercmp(key(version), issue.fixed) < 0;
   if ("upto" in issue) return vercmp(key(version), issue.upto) <= 0;
   return true;
@@ -89,7 +90,11 @@ async function main() {
       const rows = r.findings.filter(f => f.group === group);
       if (rows.length) out += `<h4>${title}</h4>` + rows.map(f => `<div><strong>${esc(f.package)}</strong> <span class="mono">${esc(f.version)}${group === "upgrade" ? " → " + esc(f.repo) : ""}</span><div class="ids">${cves(f.issues)}</div></div>`).join("");
     }
-    out += `<p class="note">Not checked: ${r.nodata.length} without CVE data, ${r.foreign.length} not from the repos.</p>`;
+    const unchecked = r.nodata.length + r.foreign.length;
+    if (!r.findings.length) out = `<p class="verdict ok">No known CVE affects the ${installed.length - unchecked} packages that could be checked.</p>`;
+    if (unchecked) out += `<p class="note"><strong>${unchecked} of ${installed.length} packages were not checked</strong>: ` +
+      `${r.nodata.length} have no CVE data in the tracker's sources (${esc(r.nodata.slice(0, 20).join(", "))}${r.nodata.length > 20 ? ", …" : ""}), ` +
+      `${r.foreign.length} are not from the Arch repos.</p>`;
     $("result").innerHTML = out;
   };
 }

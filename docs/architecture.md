@@ -2,9 +2,12 @@
 
 ```
 pacman -Sy + expac ─────────────┐
-Debian security tracker JSON ───┼─► build.py ─► data/advisories.json ─► arch-cve-check (libalpm vercmp)
-Debian Sources (homepages) ─────┤               all.json             ─► arch-audit
-kernel CNA records (git clone) ─┘                                    ─► the page (JS twin, tested against libalpm)
+Debian security tracker JSON ───┤
+Debian Sources (homepages) ─────┤
+kernel CNA records (git clone) ─┼─► build.py ─► data/advisories.json ─► arch-cve-check (libalpm vercmp)
+Mozilla CVE records (CVE API) ──┤               all.json             ─► arch-audit
+Arch packaging (git clone) ─────┤                                    ─► the page (JS twin, tested against libalpm)
+previous published feed ────────┘
 ```
 
 Two Python files, standard library only: `build.py` (about 300 lines) and `arch_cve_check.py` (the
@@ -62,6 +65,28 @@ for the upstream version (`6.18.55.rt6.arch1` → `6.18.55`):
 - else a mainline fix at or below it → `fixed`;
 - else `vulnerable` (fixed only on newer lines) or `unfixed`.
 
+## After the sources
+
+`refine()` adjusts the verdicts in three passes.
+
+- **Mozilla.** Debian ships ESR Thunderbird and lags on Firefox. For every Firefox or Thunderbird
+  issue Debian leaves open, Mozilla's own CVE record decides. These records give the fix per line
+  (`153.5 ≤ 153.*`) and in the release channel (`158 ≤ *`). Marked `"via": "Mozilla"`.
+- **Arch's own patches.** Arch's `packaging/state` repo (one shallow clone per run) gives every
+  package's current release tag. For pkgbases with open issues whose tag changed since the previous
+  feed, only that tag of the package's repo is fetched: shallow, small files, one at a time, for at
+  most `FETCH_MINUTES` (10) per run, most urgent first. The rest wait for the next run, as they do
+  when gitlab.archlinux.org refuses; their issues stay open meanwhile.
+  An issue counts as fixed in Arch when its CVE ID is in an added patch file's name, in `.SRCINFO`'s
+  sources, or in a fix/patch/backport commit message (reverts don't count) for the current pkgver.
+  The fix dates to the next `upgpkg: pkgver-pkgrel` release commit, which becomes `since`. What was
+  read is stored in the feed with its tag (`patched_tag`, `patched`) and reused until the tag
+  changes. Marked `"via": "Arch patch"`.
+- **First fixed build.** The previous published feed is read back. When an issue was open there and is
+  fixed now, this build's exact `pkgver-pkgrel` becomes `since`; Arch patches carry their own release. Later runs carry
+  it over. `since` is compared with the installed version as pacman would, pkgrel included, so it is
+  the most precise threshold. Issues fixed before the history started keep their upstream threshold.
+
 ## Feed (`data/advisories.json`, schema 2)
 
 ```json
@@ -73,8 +98,8 @@ for the upstream version (`6.18.55.rt6.arch1` → `6.18.55`):
  "cves": {"CVE-…": "summary of open issues"}}
 ```
 
-An installed version is affected by an issue when it is below `fixed`, at or below `upto`, or the issue
-has neither. `status` says what the *repo* version is: `fixed` (an upgrade fixes older installs),
+An installed version is affected by an issue when it is below `since` (an Arch build, pkgrel included),
+else below `fixed`, else at or below `upto` (upstream versions), or when the issue has none of them. `status` says what the *repo* version is: `fixed` (an upgrade fixes older installs),
 `vulnerable`, `unfixed`, `uncertain`. `minor` means Debian rates the issue unimportant; it is hidden
 by default.
 
@@ -82,10 +107,10 @@ by default.
 
 - **Coverage.** About 1,680 of 12,400 pkgbases. The rest have no Debian counterpart we can match; the
   client lists them.
-- **Arch-only patches** are invisible. When Debian patched the same upstream version, the issue is
-  `unfixed` with `upto`, and clears with the next upstream release.
+- **Arch patches** are seen only when the packaging names the CVE (patch file, source, or commit
+  message). A patch taken without naming it stays invisible until the next upstream release.
 - **Debian lags or differs.** Arch newer than Debian unstable and still "open" there gives `uncertain`
-  (exit status 3). Thunderbird is the main case: Debian ships ESR only.
+  (exit status 3). Firefox and Thunderbird use Mozilla's records for this.
 - **First-upload-in-experimental** new upstream releases look like patches (thrift 0.23.0). This errs
   towards reporting.
 - **Distro patches on an older release, for CVEs from before last year,** assume the next upstream

@@ -40,14 +40,18 @@ lists open issues. Use arch-cve-check for "is my outdated install affected?".
   affected, unimportant).
 - **Kernels:** the [kernel CNA's records](https://git.kernel.org/pub/scm/linux/security/vulns.git).
   These give per stable line which version has the fix.
+- **Firefox, Thunderbird:** Mozilla's CVE records, for the issues Debian leaves open.
+- **Arch's own patches:** CVE IDs in the
+  [packaging repos](https://gitlab.archlinux.org/archlinux/packaging/packages): patch files, sources,
+  fix commits.
+- **First fixed build:** each run reads the previous feed back and records the exact Arch build that
+  first had a fix.
 - **Version comparison:** always libalpm's `alpm_pkg_vercmp`.
 
 Rules and limits: [docs/architecture.md](docs/architecture.md).
 
-**Not covered:** packages Debian doesn't ship, or ships under a name we can't match. The client names
-them (`-v`). Thunderbird is "uncertain": Debian ships the ESR line only. Patches Arch applies without
-a new upstream version are not visible, so such packages can stay listed until the next upstream
-release.
+**Not covered:** packages Debian doesn't ship, or ships under a name we can't match. The client always
+says how many installed packages it could not check, and `-v` names them.
 
 ## Development
 

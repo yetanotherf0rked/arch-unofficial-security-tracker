@@ -60,7 +60,13 @@ def key(version: str) -> str:
 
 
 def affects(version: str, issue: dict) -> bool:
-    """Is this installed version affected? `fixed`: below it; `upto`: at or below it; neither: always."""
+    """
+    Is this installed version affected? `since`: below that Arch build
+    (pkgver-pkgrel); `fixed`: below that upstream version; `upto`: at or
+    below it; none of them: always.
+    """
+    if "since" in issue:
+        return vercmp(version, issue["since"]) < 0
     if "fixed" in issue:
         return vercmp(key(version), issue["fixed"]) < 0
     if "upto" in issue:
@@ -177,10 +183,14 @@ def main(argv: list[str] | None = None) -> int:
                 fix = f" -> {f['repo']}" if group == "upgrade" else f"  (fixed in {f['fixed']})" if f["fixed"] else ""
                 ids = f["issues"] if args.verbose else f["issues"][:4] + ([f"+{len(f['issues']) - 4} more"] if len(f["issues"]) > 4 else [])
                 print(f"  {f['package']} {f['version']}{fix}\n      {' '.join(ids)}")
+        checked = res["checked"] - len(res["nodata"]) - len(res["foreign"])
         if not res["findings"]:
-            print("No known CVE affects the installed versions of the covered packages.")
-        print(f"\nNot checked: {len(res['nodata'])} packages without CVE data, {len(res['foreign'])} not from the repos."
-              + ("" if args.verbose else " -v lists them."))
+            print(f"No known CVE affects the {checked} packages that could be checked.")
+        unchecked = len(res["nodata"]) + len(res["foreign"])
+        if unchecked:
+            print(f"\n{unchecked} of {res['checked']} installed packages were NOT checked (no CVE data in the tracker's "
+                  f"sources: {len(res['nodata'])}; not from the Arch repos, e.g. AUR: {len(res['foreign'])})."
+                  + ("" if args.verbose else " -v lists them."))
         if args.verbose:
             print("  no data: " + " ".join(res["nodata"]) + "\n  foreign: " + " ".join(res["foreign"]))
     return exit_status(res, args.upgradable)

@@ -2,3 +2,4 @@ __pycache__/
 # Build output and inputs: the feed is rebuilt from its sources on every run, never committed.
 _site/
 vulns/
+packaging/

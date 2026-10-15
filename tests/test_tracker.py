@@ -98,11 +98,81 @@ class Kernel(unittest.TestCase):
     ]
 
     def test_lines(self):
-        self.assertEqual(b.kernel_evaluate("6.18.56", self.RULES), {"status": "fixed", "fixed": "6.18.30"})
-        self.assertEqual(b.kernel_evaluate("6.18.20", self.RULES), {"status": "vulnerable", "fixed": "6.18.30"})
-        self.assertEqual(b.kernel_evaluate("7.2.9", self.RULES), {"status": "fixed", "fixed": "7.1"})
-        self.assertEqual(b.kernel_evaluate("7.0.3", self.RULES), {"status": "vulnerable"})  # fixed only on newer lines
-        self.assertIsNone(b.kernel_evaluate("6.5.1", self.RULES))
+        self.assertEqual(b.cna_evaluate("6.18.56", self.RULES), {"status": "fixed", "fixed": "6.18.30"})
+        self.assertEqual(b.cna_evaluate("6.18.20", self.RULES), {"status": "vulnerable", "fixed": "6.18.30"})
+        self.assertEqual(b.cna_evaluate("7.2.9", self.RULES), {"status": "fixed", "fixed": "7.1"})
+        self.assertEqual(b.cna_evaluate("7.0.3", self.RULES), {"status": "vulnerable"})  # fixed only on newer lines
+        self.assertIsNone(b.cna_evaluate("6.5.1", self.RULES))
+
+
+class Mozilla(unittest.TestCase):
+    RULES = [  # CVE-2026-109732, Thunderbird
+        {"version": "153.5", "lessThanOrEqual": "153.*", "status": "unaffected", "versionType": "rpm"},
+        {"version": "158", "lessThanOrEqual": "*", "status": "unaffected", "versionType": "rpm"},
+    ]
+
+    def test_release_and_esr(self):
+        self.assertEqual(b.cna_evaluate("157.0.1", self.RULES, newer_line_fixes=True), {"status": "vulnerable", "fixed": "158"})
+        self.assertEqual(b.cna_evaluate("158.0", self.RULES, newer_line_fixes=True), {"status": "fixed", "fixed": "158"})
+        self.assertEqual(b.cna_evaluate("153.4.0", self.RULES, newer_line_fixes=True), {"status": "vulnerable", "fixed": "153.5"})
+
+
+class ArchPackaging(unittest.TestCase):
+    def test_fixes(self):
+        commits = [  # oldest first: (message, changed files)
+            ("upgpkg: 1:1.3.1-1: fix CVE-2026-1004\n", "PKGBUILD\n"),          # older pkgver: ignored
+            ("upgpkg: 1:1.3.2-1\n", "PKGBUILD\n"),
+            ("Mention CVE-2026-1001 in a comment\n", "PKGBUILD\n"),           # no fix verb
+            ("Add patch\n", "PKGBUILD\nzlib-1.3.2-cve-2026-1005.patch\n"),
+            ("upgpkg: 1:1.3.2-2\n", ".SRCINFO\n"),
+            ("Revert fix for CVE-2026-1002\n", "PKGBUILD\n"),
+            ("Apply unreleased upstream patch for CVE-2026-85091\n", "PKGBUILD\n"),
+            ("upgpkg: 1:1.3.2-4\n", ".SRCINFO\n"),
+        ]
+        srcinfo = "source = zlib-1.3.2-CVE-2026-1006.patch::https://example.org\n"
+        self.assertEqual(b.arch_fixes("1:1.3.2-4", commits, srcinfo),
+                         {"CVE-2026-1005": "1:1.3.2-2", "CVE-2026-85091": "1:1.3.2-4", "CVE-2026-1006": "1:1.3.2-4"})
+
+    def test_release_tags(self):
+        import os, tempfile
+        with tempfile.TemporaryDirectory() as d:
+            for repo, line in [("core-x86_64", "zlib 1:1.3.2-4 1-1.3.2-4 3d37"), ("extra-testing-x86_64", "zlib 1:1.3.2-5 1-1.3.2-5 aaaa"),
+                               ("multilib-x86_64", "lib32-zlib 1.3.2-1 1.3.2-1 8bcb")]:
+                os.makedirs(os.path.join(d, repo))
+                with open(os.path.join(d, repo, line.split()[0]), "w") as f:
+                    f.write(line + "\n")
+            self.assertEqual(b.release_tags(d), {"zlib": "1-1.3.2-4", "lib32-zlib": "1.3.2-1"})
+
+    def test_gitlab_path(self):
+        self.assertEqual([b.gitlab_path(n) for n in ("libsigc++", "gtk2+extra", "tree", "zlib")],
+                         ["libsigcplusplus", "gtk2-extra", "unix-tree", "zlib"])
+
+
+class Refine(unittest.TestCase):
+    def feed(self):
+        return {"stats": {"pkgbases": 2}, "pkgbases": {"zlib": {"version": "1:1.3.2-4", "issues": [
+            {"id": "CVE-A", "status": "unfixed", "upto": "1:1.3.2"},
+            {"id": "CVE-B", "status": "fixed", "fixed": "1:1.3.2"},
+            {"id": "CVE-C", "status": "fixed", "fixed": "1:1.3.1"}]}}}
+
+    def test_arch_patch_and_history(self):
+        prev = {"pkgbases": {"zlib": {"version": "1:1.3.2-3", "issues": [
+            {"id": "CVE-B", "status": "vulnerable", "fixed": "1:1.3.2"},
+            {"id": "CVE-C", "status": "fixed", "fixed": "1:1.3.1", "since": "1:1.3.1-2"}]}}}
+        f = self.feed()
+        b.refine(f, {}, {"zlib": {"CVE-A": "1:1.3.2-4"}}, prev)
+        got = {i["id"]: i for i in f["pkgbases"]["zlib"]["issues"]}
+        self.assertEqual(got["CVE-A"], {"id": "CVE-A", "status": "fixed", "via": "Arch patch", "since": "1:1.3.2-4"})
+        self.assertEqual(got["CVE-B"]["since"], "1:1.3.2-4")   # open last run, fixed now
+        self.assertEqual(got["CVE-C"]["since"], "1:1.3.1-2")   # carried over
+        self.assertTrue(c.affects("1:1.3.2-3", got["CVE-A"]))  # the build before Arch's patch
+        self.assertFalse(c.affects("1:1.3.2-4", got["CVE-A"]))
+        self.assertEqual(f["stats"]["unfixed"], 0)
+
+    def test_first_run_has_no_history(self):
+        f = self.feed()
+        b.refine(f, {}, {}, None)
+        self.assertNotIn("since", f["pkgbases"]["zlib"]["issues"][1])
 
 
 class Client(unittest.TestCase):
@@ -110,12 +180,13 @@ class Client(unittest.TestCase):
         {"id": "CVE-1", "status": "fixed", "fixed": "1.5"},
         {"id": "CVE-2", "status": "vulnerable", "fixed": "2.1"},
         {"id": "CVE-3", "status": "uncertain"},
-        {"id": "CVE-4", "status": "unfixed", "minor": True}]}}}
+        {"id": "CVE-4", "status": "unfixed", "minor": True},
+        {"id": "CVE-5", "status": "fixed", "via": "Arch patch", "since": "2.0-1"}]}}}
 
     def test_groups_and_exit(self):
         r = c.assess([("foo", "1.0-1"), ("bar", "1-1"), ("yay", "12-1")], self.FEED)
         self.assertEqual([(f["group"], f["issues"]) for f in r["findings"]],
-                         [("upgrade", ["CVE-1"]), ("vulnerable", ["CVE-2"]), ("uncertain", ["CVE-3"])])
+                         [("upgrade", ["CVE-1", "CVE-5"]), ("vulnerable", ["CVE-2"]), ("uncertain", ["CVE-3"])])
         self.assertEqual((r["foreign"], r["nodata"]), (["yay"], ["bar"]))
         self.assertEqual(c.exit_status(r), 1)
         only = c.assess([("foo", "2.1-1")], self.FEED)
