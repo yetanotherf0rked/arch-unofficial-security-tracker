@@ -127,6 +127,10 @@
   footer { margin-top: 32px; color: var(--muted); font-size: 12px; text-align: center; }
   a { color: var(--accent); }
   .empty { padding: 48px 16px; text-align: center; color: var(--muted); }
+  .cve.unfixed { border-style: dashed; color: var(--muted); }
+  .subpkgs { color: var(--muted); font-size: 11.5px; }
+  label.toggle { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  .table-wrap { overflow-x: auto; }
 </style>
 </head>
 <body>
@@ -147,11 +151,13 @@
       <option value="extra">extra</option>
       <option value="multilib">multilib</option>
     </select>
+    <label class="toggle"><input type="checkbox" id="showUnfixed"> include unfixed upstream</label>
   </div>
+  <div class="table-wrap">
   <table id="tbl">
     <thead>
       <tr>
-        <th data-sort="name">Package</th>
+        <th data-sort="name">Package (base)</th>
         <th data-sort="repo">Repo</th>
         <th data-sort="version">Installed</th>
         <th>Fixed in</th>
@@ -163,6 +169,7 @@
       <tr><td colspan="6" class="empty">loading data…</td></tr>
     </tbody>
   </table>
+  </div>
 </main>
 <footer>
   Data: <a href="https://osv.dev">OSV.dev</a> (aggregates NVD, GHSA, Debian, Ubuntu, Alpine) · Packages: official Arch repo DBs ·
@@ -175,20 +182,24 @@
   const notice = document.getElementById("notice");
   const q = document.getElementById("q");
   const repoFilter = document.getElementById("repoFilter");
+  const showUnfixed = document.getElementById("showUnfixed");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+    ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 
   let data;
   try {
     const resp = await fetch("data/vulns.json", { cache: "no-cache" });
     data = await resp.json();
   } catch (e) {
-    rows.innerHTML = `<tr><td colspan="6" class="empty">Failed to load data/vulns.json: ${e}</td></tr>`;
+    rows.innerHTML = `<tr><td colspan="6" class="empty">Failed to load data/vulns.json: ${esc(e)}</td></tr>`;
     return;
   }
 
   const when = new Date(data.generated_at * 1000);
   meta.innerHTML =
     `<span><strong>${data.affected_count}</strong> affected packages</span>` +
-    `<span><strong>${data.total_vulns}</strong> unique CVEs</span>` +
+    `<span><strong>${data.total_vulns}</strong> unique CVEs with a fix</span>` +
+    `<span><strong>${data.total_unfixed ?? 0}</strong> unfixed upstream</span>` +
     `<span>updated <strong>${when.toISOString().replace("T", " ").slice(0, 16)}Z</strong></span>`;
 
   notice.textContent = data.limitations || "";
@@ -199,11 +210,15 @@
   function render() {
     const term = q.value.trim().toLowerCase();
     const repo = repoFilter.value;
+    const withUnfixed = showUnfixed.checked;
+    const vulnsOf = p => withUnfixed ? p.vulns.concat(p.unfixed || []) : p.vulns;
     let items = data.affected.filter(p => {
       if (repo && p.repo !== repo) return false;
+      if (!vulnsOf(p).length) return false;
       if (!term) return true;
       if (p.name.toLowerCase().includes(term)) return true;
-      return p.vulns.some(v =>
+      if ((p.packages || []).some(n => n.toLowerCase().includes(term))) return true;
+      return vulnsOf(p).some(v =>
         (v.id || "").toLowerCase().includes(term) ||
         (v.cve || "").toLowerCase().includes(term)
       );
@@ -212,7 +227,7 @@
     items.sort((a, b) => {
       let va, vb;
       switch (sortKey) {
-        case "count": va = a.vulns.length; vb = b.vulns.length; break;
+        case "count": va = vulnsOf(a).length; vb = vulnsOf(b).length; break;
         case "name": va = a.name; vb = b.name; break;
         case "repo": va = a.repo; vb = b.repo; break;
         case "version": va = a.version; vb = b.version; break;
@@ -228,23 +243,30 @@
     }
 
     const html = items.map(p => {
-      const n = p.vulns.length;
+      const list = vulnsOf(p);
+      const n = list.length;
       const cls = n >= 5 ? "c5" : n >= 3 ? "c3" : "";
-      const cves = p.vulns.map(v => {
+      const unfixedIds = new Set((p.unfixed || []).map(v => v.id));
+      const cves = list.map(v => {
         const label = v.cve || v.id;
         const url = `https://osv.dev/vulnerability/${encodeURIComponent(v.id)}`;
-        const title = [v.severity, v.summary].filter(Boolean).join(" — ").replace(/"/g, "&quot;");
-        return `<a class="cve" href="${url}" target="_blank" rel="noopener" title="${title}">${label}</a>`;
+        const isUnfixed = unfixedIds.has(v.id);
+        const title = [isUnfixed ? "no fix upstream yet" : "", v.severity, v.summary].filter(Boolean).join(" — ");
+        return `<a class="cve${isUnfixed ? " unfixed" : ""}" href="${url}" target="_blank" rel="noopener" title="${esc(title)}">${esc(label)}</a>`;
       }).join("");
+      const subs = (p.packages || []).filter(x => x !== p.name);
+      const subHtml = subs.length
+        ? `<div class="subpkgs">${esc(subs.slice(0, 4).join(", "))}${subs.length > 4 ? ` +${subs.length - 4}` : ""}</div>`
+        : "";
       // Pick the lowest fixed version across all CVEs for display (what Arch would need to reach)
       const allFixes = new Set();
       p.vulns.forEach(v => (v.fixed_versions || []).forEach(f => allFixes.add(f)));
       const fixed = [...allFixes].slice(0, 3).join(", ") + (allFixes.size > 3 ? " …" : "");
       return `<tr>
-        <td class="mono">${p.name}</td>
-        <td><span class="badge-repo">${p.repo}</span></td>
-        <td class="mono">${p.version}</td>
-        <td class="mono" style="color:var(--muted);font-size:12px">${fixed || ""}</td>
+        <td class="mono">${esc(p.name)}${subHtml}</td>
+        <td><span class="badge-repo">${esc(p.repo)}</span></td>
+        <td class="mono">${esc(p.version)}</td>
+        <td class="mono" style="color:var(--muted);font-size:12px">${esc(fixed) || "—"}</td>
         <td><span class="count-badge ${cls}">${n}</span></td>
         <td><div class="cve-list">${cves}</div></td>
       </tr>`;
@@ -262,6 +284,7 @@
   });
   q.addEventListener("input", render);
   repoFilter.addEventListener("change", render);
+  showUnfixed.addEventListener("change", render);
   render();
 
   const repoLink = document.getElementById("repoLink");

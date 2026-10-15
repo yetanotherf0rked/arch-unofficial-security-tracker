@@ -54,10 +54,16 @@ jobs:
             git push
           fi
 
+      - name: Stage site
+        run: |
+          mkdir -p _site/data
+          cp index.html _site/
+          cp data/packages.json data/vulns.json _site/data/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
   deploy:
     needs: refresh

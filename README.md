@@ -14,20 +14,33 @@ Once a day, a GitHub Action:
    a public Arch mirror (`https://geo.mirror.pkgbuild.com` by default).
    These are Arch's canonical pacman sync files — the same ones every Arch
    install downloads. No HTML scraping.
-2. For every package, queries [OSV.dev](https://osv.dev/)'s batch API
-   proxying against the **Debian**, **Ubuntu** and **Alpine** ecosystems,
-   using the Arch package name and the upstream version (pkgrel stripped).
+2. For every **pkgbase** (Arch's source package — the distros below key
+   their records by source package too; `lib32-foo` is looked up as `foo`),
+   queries [OSV.dev](https://osv.dev/)'s batch API proxying against the
+   **Debian**, **Ubuntu** and **Alpine** ecosystems with the upstream
+   version (epoch and pkgrel stripped), following result pagination.
    This returns candidate CVE ids.
-3. Fetches full OSV records for each candidate (with a per-run cache keyed
-   on each record's `modified` timestamp, so unchanged CVEs skip the
-   network).
-4. **Verifies** every candidate locally: finds the fixed-in version in the
-   OSV record, strips distro suffixes (`-rN`, `-pkgrel`, `N:`) and
-   compares against Arch's upstream version with a Debian-aware vercmp
-   (handles `~`-pre-releases). CVEs whose fix is already in Arch are
-   dropped; so are records with no explicit fixed version.
+3. Fetches full OSV records for each candidate, 8 in parallel, with a
+   cache keyed on each record's `modified` timestamp so unchanged CVEs
+   skip the network on later runs.
+4. **Verifies** every candidate locally against the record's affected
+   ranges (`introduced` / `fixed` / `last_affected`). Distro version noise
+   is normalized away first (`-rN`, Debian/Ubuntu revisions, `+dfsg`,
+   `+repack`, `+debNuM`, `~debNuM`, `+really`, epochs). A fix released on
+   Arch's own `major.minor` branch counts even when a distro backported it
+   to an older line. Results:
+   - **affected** — Arch is below a fix: listed.
+   - **unfixed** — no fix exists anywhere yet: listed separately (hidden
+     behind a toggle on the page).
+   - **fixed** — Arch already has the fix: dropped.
+   - **mismatch** — Arch's version is far below anything the distro ever
+     shipped under that name (e.g. Arch's `keystone` assembler 0.9 vs.
+     Debian's OpenStack `keystone` 22+): treated as a different project,
+     dropped.
+
+   The same CVE reported by several distros is merged into one entry.
 5. Writes `data/packages.json` and `data/vulns.json`, commits them, and
-   deploys the static site via GitHub Pages.
+   deploys the static site (page + those two files) via GitHub Pages.
 
 Everything comes from APIs / structured feeds — no HTML parsers.
 
@@ -50,14 +63,19 @@ Explicitly **not** used (stale or unmaintained):
   through Debian / Ubuntu / Alpine, which share upstream names with most
   Arch packages but not all. Packages renamed in Arch (`openssh` vs
   `openssh-server`, `python-foo` vs `python3-foo`, etc.) may be missed.
-- **Unverifiable records are dropped.** CVE records lacking an explicit
-  fixed-in version are discarded rather than reported — we can't tell
-  whether Arch is affected. This favours precision over recall.
+- **Unfixed CVEs can't be version-checked.** When no distro has a fix,
+  every version is considered affected; these are shown separately as
+  "unfixed upstream" and some will be low-priority issues distros chose
+  not to patch.
+- **Name collisions are caught heuristically.** The mismatch check only
+  fires when Arch's major version is less than half of everything the
+  distro knows; a collision between projects with similar version numbers
+  will still slip through.
 - **Backported patches.** Arch sometimes carries upstream patches without
   a version bump; those CVEs can appear as false positives here. The
   tracker has no way to know about such patches.
 - **vercmp is simplified.** Handles the common cases (digits, letters,
-  `~` pre-releases, epoch, pkgrel). It does not perfectly mirror pacman's
+  `~` and `rc`/`alpha`/`beta`/`pre` pre-releases, epoch, pkgrel). It does not perfectly mirror pacman's
   `vercmp` or Debian's `dpkg --compare-versions` in exotic corners.
 - **Non-x86_64.** The fetcher only pulls x86_64 DBs. Other architectures
   track the same source versions, so the CVE list applies either way.

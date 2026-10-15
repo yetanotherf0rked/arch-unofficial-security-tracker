@@ -7,11 +7,12 @@ Pulls the current package list from Arch's official repository databases
 to find upstream CVEs. OSV.dev aggregates GHSA, NVD, Debian Security
 Tracker, Ubuntu Security Notices and Alpine SecDB. Arch itself is not an
 OSV ecosystem, so we query against Debian, Ubuntu and Alpine as proxies —
-most Arch package names match upstream names used in those distros.
+those distros key their records by *source* package, which maps to Arch's
+pkgbase far better than to individual (split) binary package names.
 
 Outputs:
   data/packages.json  — snapshot of fetched packages
-  data/vulns.json     — package → CVEs mapping with metadata
+  data/vulns.json     — pkgbase → CVEs mapping with metadata
 
 Stdlib only. Designed to run inside GitHub Actions.
 """
@@ -27,6 +28,7 @@ import tarfile
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +44,8 @@ OSV_VULN_URL = "https://api.osv.dev/v1/vulns/{id}"
 PROXY_ECOSYSTEMS = ("Debian", "Ubuntu", "Alpine")
 
 BATCH_SIZE = 1000
+MAX_PAGES = 20  # per query; OSV paginates results for packages with huge histories
+FETCH_WORKERS = 8
 HTTP_TIMEOUT = 60
 HTTP_RETRIES = 3
 
@@ -88,7 +92,7 @@ def http_post_json(url: str, payload: dict) -> dict:
 
 
 def fetch_repo_db(repo: str) -> list[dict[str, str]]:
-    """Fetch and parse a repository .db.tar.gz, return [{name, version, repo}]."""
+    """Fetch and parse a repository .db.tar.gz, return [{name, base, version, repo}]."""
     url = f"{MIRROR}/{repo}/os/{ARCH}/{repo}.db.tar.gz"
     print(f"  fetching {url}", flush=True)
     blob = http_get(url)
@@ -105,7 +109,12 @@ def fetch_repo_db(repo: str) -> list[dict[str, str]]:
             name = fields.get("NAME")
             version = fields.get("VERSION")
             if name and version:
-                out.append({"name": name, "version": version, "repo": repo})
+                out.append({
+                    "name": name,
+                    "base": fields.get("BASE") or name,
+                    "version": version,
+                    "repo": repo,
+                })
     return out
 
 
@@ -132,24 +141,47 @@ def parse_desc(text: str) -> dict[str, str]:
     return fields
 
 
-_PKGREL_RE = re.compile(r"-\d[\w.]*$")
+def query_name(base: str) -> str:
+    """Name to look up in proxy distros: multilib `lib32-foo` is built from `foo`."""
+    return base[len("lib32-"):] if base.startswith("lib32-") else base
+
+
+# ---------------------------------------------------------------------------
+# Version handling
+# ---------------------------------------------------------------------------
+
 _ALPINE_REL_RE = re.compile(r"-r\d+$")
+# Debian/Ubuntu revision or Arch pkgrel: "-1", "-1+deb12u1", "-1~deb11u1", "-0ubuntu0.2"
+_REVISION_RE = re.compile(r"-[0-9][0-9A-Za-z.+~]*$")
+# Debian "2.0+really1.9" means the tarball is actually 1.9
+_REALLY_RE = re.compile(r"^.*[+~]really", re.I)
+# Debian repack / backport markers glued onto the upstream part
+_DISTRO_SUFFIX_RE = re.compile(
+    r"[+~](?:dfsg|ds|repack|deb\d|ubuntu|build|nmu)[0-9A-Za-z.+~]*$", re.I
+)
 
 
 def upstream_version(ver: str) -> str:
     """
     Normalize a distro package version to an upstream-ish form:
-      - strip leading epoch "N:" (Debian, Arch, Alpine with epoch)
-      - strip trailing Debian/Arch pkgrel "-N[.rest]" or Alpine "-rN"
+      - strip leading epoch "N:"
+      - strip trailing revision: Arch pkgrel, Debian/Ubuntu revision, Alpine "-rN"
+      - strip Debian repack / backport markers (+dfsg, +ds, +repack, +debNuM, …)
+      - resolve "+really" (take the real upstream version)
     """
     if ":" in ver:
         ver = ver.split(":", 1)[1]
     ver = _ALPINE_REL_RE.sub("", ver)
-    ver = _PKGREL_RE.sub("", ver)
+    ver = _REVISION_RE.sub("", ver)
+    ver = _REALLY_RE.sub("", ver)
+    ver = _DISTRO_SUFFIX_RE.sub("", ver)
     return ver
 
 
 _TOKEN_RE = re.compile(r"\d+|[A-Za-z]+")
+# Letter tokens that mark a pre-release when they trail a shorter version,
+# e.g. Arch "1.0rc1" < "1.0". Single letters stay post-release ("1.1.1a" > "1.1.1").
+_PRE_TOKENS = {"alpha", "beta", "pre", "rc"}
 
 
 def _tokens(v: str) -> list[str]:
@@ -170,9 +202,12 @@ def _tokcmp(ta: list[str], tb: list[str]) -> int:
         else:
             if x != y:
                 return -1 if x < y else 1
-    if len(ta) != len(tb):
-        return -1 if len(ta) < len(tb) else 1
-    return 0
+    if len(ta) == len(tb):
+        return 0
+    longer_is_a = len(ta) > len(tb)
+    nxt = (ta if longer_is_a else tb)[min(len(ta), len(tb))]
+    longer_wins = not (nxt.isalpha() and nxt.lower() in _PRE_TOKENS)
+    return 1 if longer_is_a == longer_wins else -1
 
 
 def vercmp(a: str, b: str) -> int:
@@ -182,7 +217,8 @@ def vercmp(a: str, b: str) -> int:
     `~` is treated as pre-release (as in Debian): `1.0~rc1 < 1.0`.
     Within non-`~` parts, versions tokenize into digit/letter runs; digits
     compared numerically, letters lexically; digit tokens outrank letter
-    tokens; a longer token sequence is greater.
+    tokens; a longer token sequence is greater unless the extra part starts
+    with a pre-release marker (`1.0rc1 < 1.0`).
     """
     if a == b:
         return 0
@@ -201,29 +237,119 @@ def vercmp(a: str, b: str) -> int:
     return _tokcmp(_tokens(a_pre), _tokens(b_pre))
 
 
-def extract_fixed_versions(record: dict, package_name: str) -> list[str]:
-    """
-    Return upstream-normalized fixed versions from an OSV record whose
-    `affected[].package.name` matches package_name.
-    """
-    out: list[str] = []
+def _branch(v: str) -> tuple[str, ...]:
+    """Release branch: first two numeric components ("1.26.1" -> ("1", "26"))."""
+    return tuple(t for t in _tokens(v) if t.isdigit())[:2]
+
+
+def _major(v: str) -> int | None:
+    toks = _tokens(v)
+    return int(toks[0]) if toks and toks[0].isdigit() else None
+
+
+# ---------------------------------------------------------------------------
+# Matching an OSV record against an Arch version
+# ---------------------------------------------------------------------------
+
+def _ranges_for(record: dict, name: str) -> tuple[list[list[dict]], list[str]]:
+    """Event lists of ECOSYSTEM/SEMVER ranges, and listed versions, for `name`."""
+    ranges: list[list[dict]] = []
+    versions: list[str] = []
     for aff in record.get("affected", []) or []:
         pkg = (aff.get("package") or {}).get("name", "")
-        if pkg.lower() != package_name.lower():
+        if pkg.lower() != name.lower():
             continue
+        versions.extend(aff.get("versions", []) or [])
         for rng in aff.get("ranges", []) or []:
-            for ev in rng.get("events", []) or []:
-                if "fixed" in ev:
-                    out.append(upstream_version(ev["fixed"]))
-    # dedupe, preserve order
-    seen = set()
-    uniq = []
-    for v in out:
-        if v and v not in seen:
-            seen.add(v)
-            uniq.append(v)
-    return uniq
+            if rng.get("type") in ("ECOSYSTEM", "SEMVER"):
+                ranges.append(rng.get("events", []) or [])
+    return ranges, versions
 
+
+def evaluate(record: dict, name: str, version: str) -> tuple[str, list[str]]:
+    """
+    Decide whether Arch's upstream `version` of `name` is affected.
+
+    Returns (status, fixed_versions) where status is one of:
+      "affected"  — inside an affected range that has a known fix
+      "unfixed"   — no fix exists anywhere in the record yet
+      "fixed"     — Arch is at or past the fix
+      "mismatch"  — would be affected, but Arch's version is far below anything
+                    the record knows: likely a different project, same name
+      "unknown"   — record has no usable ranges for this name
+    """
+    ranges, listed = _ranges_for(record, name)
+    if not ranges:
+        return "unknown", []
+
+    intervals: list[tuple[str, str | None, str]] = []  # (lo, hi, kind)
+    fixes: list[str] = []
+    known: list[str] = [upstream_version(v) for v in listed]
+    for events in ranges:
+        lo: str | None = None
+        for ev in events:
+            if "introduced" in ev:
+                lo = "0" if ev["introduced"] == "0" else upstream_version(ev["introduced"])
+                if lo != "0":
+                    known.append(lo)
+            elif "fixed" in ev and lo is not None:
+                hi = upstream_version(ev["fixed"])
+                intervals.append((lo, hi, "fixed"))
+                fixes.append(hi)
+                lo = None
+            elif "last_affected" in ev and lo is not None:
+                hi = upstream_version(ev["last_affected"])
+                intervals.append((lo, hi, "last"))
+                known.append(hi)
+                lo = None
+        if lo is not None:
+            intervals.append((lo, None, "open"))
+    fixes = list(dict.fromkeys(f for f in fixes if f))
+    known.extend(fixes)
+
+    status = _status(version, intervals, fixes)
+
+    # Name collision guard: Arch's version is far below every version the proxy
+    # distro has ever recorded under this name (e.g. Arch's keystone assembler
+    # 0.9 vs. Debian's OpenStack keystone 22+). Ordinary lag (chromium 154 vs.
+    # a fix in 155) stays well inside the margin.
+    if status in ("affected", "unfixed"):
+        arch_major = _major(version)
+        majors = [m for m in (_major(v) for v in known if v) if m is not None]
+        if arch_major is not None and majors and arch_major * 2 + 1 < min(majors):
+            return "mismatch", fixes
+    return status, fixes
+
+
+def _status(
+    version: str, intervals: list[tuple[str, str | None, str]], fixes: list[str]
+) -> str:
+    # Branch-aware fix: Arch is at/after a fix released on its own branch.
+    arch_branch = _branch(version)
+    if any(_branch(f) == arch_branch and vercmp(version, f) >= 0 for f in fixes):
+        return "fixed"
+
+    def inside(lo: str, hi: str | None, kind: str) -> bool:
+        if lo != "0" and vercmp(version, lo) < 0:
+            return False
+        if kind == "fixed":
+            return vercmp(version, hi) < 0
+        if kind == "last":
+            return vercmp(version, hi) <= 0
+        return True
+
+    if any(inside(*iv) for iv in intervals if iv[2] != "open"):
+        return "affected"
+    # Open-ended ranges only mean "unfixed" when nobody has a fix yet; otherwise
+    # they are just a distro release that hasn't picked up the fix.
+    if not fixes and any(inside(*iv) for iv in intervals if iv[2] == "open"):
+        return "unfixed"
+    return "fixed"
+
+
+# ---------------------------------------------------------------------------
+# OSV.dev
+# ---------------------------------------------------------------------------
 
 def chunks(seq, n):
     for i in range(0, len(seq), n):
@@ -231,54 +357,53 @@ def chunks(seq, n):
 
 
 def query_osv_batch(
-    packages: list[dict[str, str]],
-) -> tuple[dict[str, list[str]], dict[str, str]]:
+    targets: list[tuple[str, str]],
+) -> tuple[dict[tuple[str, str], set[str]], dict[str, str]]:
     """
-    Query OSV.dev in batches. For each package, send one query per proxy
-    ecosystem.
+    Query OSV.dev in batches. For each (name, upstream_version) target, send
+    one query per proxy ecosystem, following `next_page_token` pagination.
 
-    Returns a `(package_vulns, modified)` tuple:
-      package_vulns: {"<repo>/<name> <version>": [vuln_id, …]}
-      modified:      {vuln_id: last_modified_timestamp}
+    Returns a `(target_vulns, modified)` tuple:
+      target_vulns: {(name, version): {vuln_id, …}}
+      modified:     {vuln_id: last_modified_timestamp}
     """
-    queries: list[dict] = []
-    index: list[str] = []  # package_key per query
-
-    for p in packages:
-        up = upstream_version(p["version"])
-        key = f"{p['repo']}/{p['name']} {p['version']}"
+    pending: list[tuple[int, dict]] = []
+    for ti, (name, ver) in enumerate(targets):
         for eco in PROXY_ECOSYSTEMS:
-            queries.append({
-                "package": {"name": p["name"], "ecosystem": eco},
-                "version": up,
-            })
-            index.append(key)
+            pending.append((ti, {"package": {"name": name, "ecosystem": eco}, "version": ver}))
 
-    results: dict[str, set[str]] = {}
+    results: dict[tuple[str, str], set[str]] = {}
     modified: dict[str, str] = {}
-    total = len(queries)
-    print(f"  querying OSV.dev: {total} queries in batches of {BATCH_SIZE}", flush=True)
+    print(f"  querying OSV.dev: {len(pending)} queries in batches of {BATCH_SIZE}", flush=True)
 
-    for batch_i, batch in enumerate(chunks(list(range(total)), BATCH_SIZE)):
-        payload = {"queries": [queries[i] for i in batch]}
-        resp = http_post_json(OSV_BATCH_URL, payload)
-        batch_results = resp.get("results", [])
-        for local_i, r in enumerate(batch_results):
-            global_i = batch[local_i]
-            key = index[global_i]
-            for v in r.get("vulns", []):
-                vid = v.get("id")
-                if not vid:
-                    continue
-                results.setdefault(key, set()).add(vid)
-                modified[vid] = v.get("modified", "")
-        print(
-            f"    batch {batch_i + 1}: {sum(1 for r in batch_results if r.get('vulns'))} hits",
-            flush=True,
-        )
-        time.sleep(0.5)  # be polite
+    for page in range(MAX_PAGES):
+        if not pending:
+            break
+        if page:
+            print(f"  following pagination for {len(pending)} queries", flush=True)
+        next_pending: list[tuple[int, dict]] = []
+        for batch_i, batch in enumerate(chunks(pending, BATCH_SIZE)):
+            resp = http_post_json(OSV_BATCH_URL, {"queries": [q for _, q in batch]})
+            batch_results = resp.get("results", [])
+            for (ti, q), r in zip(batch, batch_results):
+                for v in r.get("vulns", []) or []:
+                    vid = v.get("id")
+                    if vid:
+                        results.setdefault(targets[ti], set()).add(vid)
+                        modified[vid] = v.get("modified", "")
+                token = r.get("next_page_token")
+                if token:
+                    next_pending.append((ti, {**q, "page_token": token}))
+            print(
+                f"    batch {batch_i + 1}: {sum(1 for r in batch_results if r.get('vulns'))} hits",
+                flush=True,
+            )
+            time.sleep(0.5)  # be polite
+        pending = next_pending
+    if pending:
+        print(f"  WARNING: {len(pending)} queries still paginated after {MAX_PAGES} pages", file=sys.stderr)
 
-    return {k: sorted(v) for k, v in results.items()}, modified
+    return results, modified
 
 
 CACHE_PATH = DATA / "cve-cache.json"
@@ -299,7 +424,7 @@ def fetch_vuln_records(
     """
     Fetch full OSV records for each (id, modified) pair, reusing cached
     records when their `modified` timestamp still matches. Only unknown or
-    changed records hit the network.
+    changed records hit the network, FETCH_WORKERS at a time.
     """
     cache = load_cache()
     out: dict[str, dict[str, Any]] = {}
@@ -314,16 +439,21 @@ def fetch_vuln_records(
         f"  record cache: {len(out)} hits, {len(stale)} to fetch",
         flush=True,
     )
-    for i, vid in enumerate(stale):
+
+    def fetch(vid: str) -> tuple[str, dict[str, Any] | None]:
         try:
-            rec = json.loads(http_get(OSV_VULN_URL.format(id=vid)))
-            out[vid] = rec
-            cache[vid] = rec
+            return vid, json.loads(http_get(OSV_VULN_URL.format(id=vid)))
         except Exception as e:
             print(f"    skip {vid}: {e}", flush=True)
-        if (i + 1) % 200 == 0:
-            print(f"    {i + 1}/{len(stale)}", flush=True)
-        time.sleep(0.02)
+            return vid, None
+
+    with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as pool:
+        for i, (vid, rec) in enumerate(pool.map(fetch, stale)):
+            if rec is not None:
+                out[vid] = rec
+                cache[vid] = rec
+            if (i + 1) % 500 == 0:
+                print(f"    {i + 1}/{len(stale)}", flush=True)
     CACHE_PATH.write_text(json.dumps(cache))
     return out
 
@@ -345,7 +475,7 @@ def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": vid,
         "cve": cve,
-        "summary": (record.get("summary") or "").strip()[:300],
+        "summary": (record.get("summary") or record.get("details") or "").strip()[:300],
         "severity": severity,
         "aliases": aliases,
         "modified": record.get("modified", ""),
@@ -354,6 +484,23 @@ def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
             r.get("url") for r in (record.get("references") or [])[:5] if r.get("url")
         ],
     }
+
+
+def merge_by_cve(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Collapse the same CVE reported by several distros into one entry."""
+    merged: dict[str, dict[str, Any]] = {}
+    for e in entries:
+        key = e["cve"] or e["id"]
+        if key not in merged:
+            merged[key] = {**e, "sources": [e["id"]]}
+            continue
+        m = merged[key]
+        m["sources"].append(e["id"])
+        m["fixed_versions"] = list(dict.fromkeys(m["fixed_versions"] + e["fixed_versions"]))
+        for field in ("summary", "severity"):
+            if not m[field] and e[field]:
+                m[field] = e[field]
+    return sorted(merged.values(), key=lambda v: v["cve"] or v["id"], reverse=True)
 
 
 def main() -> int:
@@ -365,6 +512,9 @@ def main() -> int:
         except Exception as e:
             print(f"  WARNING: could not fetch {repo}: {e}", file=sys.stderr)
     print(f"  total packages: {len(packages)}", flush=True)
+    if not packages:
+        print("No packages fetched; refusing to overwrite data.", file=sys.stderr)
+        return 1
 
     (DATA / "packages.json").write_text(json.dumps({
         "generated_at": int(time.time()),
@@ -373,59 +523,56 @@ def main() -> int:
         "packages": packages,
     }, indent=2))
 
+    # One entry per (repo, pkgbase): split packages share a source and a CVE list.
+    bases: dict[tuple[str, str], dict[str, Any]] = {}
+    for p in packages:
+        b = bases.setdefault((p["repo"], p["base"]), {
+            "name": p["base"],
+            "query": query_name(p["base"]),
+            "version": p["version"],
+            "upstream_version": upstream_version(p["version"]),
+            "repo": p["repo"],
+            "packages": [],
+        })
+        b["packages"].append(p["name"])
+    print(f"  pkgbases: {len(bases)}", flush=True)
+
     print("Querying OSV.dev for candidate CVEs...", flush=True)
-    candidate_vulns, modified = query_osv_batch(packages)
+    targets = sorted({(b["query"], b["upstream_version"]) for b in bases.values()})
+    candidate_vulns, modified = query_osv_batch(targets)
 
     unique_ids = sorted({vid for ids in candidate_vulns.values() for vid in ids})
     records = fetch_vuln_records([(vid, modified.get(vid, "")) for vid in unique_ids])
 
-    # Verify each candidate: Arch's upstream version must be < some fixed version
-    # declared in the OSV record. Drop records with no usable fixed version — we
-    # can't say they still apply to Arch.
-    kept = 0
-    dropped_fixed = 0
-    dropped_unverifiable = 0
-
+    stats = {"affected": 0, "unfixed": 0, "fixed": 0, "mismatch": 0, "unknown": 0}
     affected: list[dict[str, Any]] = []
-    for p in packages:
-        key = f"{p['repo']}/{p['name']} {p['version']}"
-        ids = candidate_vulns.get(key)
+    for b in bases.values():
+        ids = candidate_vulns.get((b["query"], b["upstream_version"]))
         if not ids:
             continue
-        arch_upstream = upstream_version(p["version"])
-        vulns: list[dict[str, Any]] = []
-        for vid in ids:
+        found: list[dict[str, Any]] = []
+        unfixed: list[dict[str, Any]] = []
+        for vid in sorted(ids):
             rec = records.get(vid)
             if not rec:
                 continue
-            fixes = extract_fixed_versions(rec, p["name"])
-            if not fixes:
-                dropped_unverifiable += 1
-                continue
-            # Keep if there exists some fixed version F such that arch < F.
-            if any(vercmp(arch_upstream, f) < 0 for f in fixes):
-                vulns.append({**summarize_record(rec), "fixed_versions": fixes})
-                kept += 1
-            else:
-                dropped_fixed += 1
-        if vulns:
-            vulns.sort(key=lambda v: v.get("cve") or v["id"], reverse=True)
-            affected.append({
-                "name": p["name"],
-                "version": p["version"],
-                "upstream_version": arch_upstream,
-                "repo": p["repo"],
-                "vulns": vulns,
-            })
+            status, fixes = evaluate(rec, b["query"], b["upstream_version"])
+            stats[status] += 1
+            if status == "affected":
+                found.append({**summarize_record(rec), "fixed_versions": fixes})
+            elif status == "unfixed":
+                unfixed.append({**summarize_record(rec), "fixed_versions": []})
+        if found or unfixed:
+            b.pop("query")
+            b["vulns"] = merge_by_cve(found)
+            b["unfixed"] = merge_by_cve(unfixed)
+            affected.append(b)
 
-    affected.sort(key=lambda x: (-len(x["vulns"]), x["name"]))
+    affected.sort(key=lambda x: (-len(x["vulns"]), -len(x["unfixed"]), x["name"]))
+    print(f"  verification (package/record pairs): {stats}", flush=True)
 
-    stats = {
-        "kept_pairs": kept,
-        "dropped_already_fixed": dropped_fixed,
-        "dropped_unverifiable": dropped_unverifiable,
-    }
-    print(f"  verification: {stats}", flush=True)
+    def unique(field: str) -> int:
+        return len({v["cve"] or v["id"] for a in affected for v in a[field]})
 
     (DATA / "vulns.json").write_text(json.dumps({
         "generated_at": int(time.time()),
@@ -435,19 +582,24 @@ def main() -> int:
         },
         "limitations": (
             "Arch is not an OSV ecosystem. CVEs are discovered via OSV queries against "
-            "Debian / Ubuntu / Alpine using Arch package names, then filtered locally "
-            "by comparing Arch's upstream version to the fixed version in each OSV "
-            "record. Records with no explicit fixed version are dropped (unverifiable). "
-            "False negatives possible when Arch packages are renamed vs. upstream distros; "
-            "false positives possible when Arch backports a patch without a version bump."
+            "Debian / Ubuntu / Alpine using Arch pkgbase names, then verified locally "
+            "against the affected ranges in each record. CVEs with no fix anywhere yet are "
+            "listed separately as unfixed. False negatives possible when Arch names a "
+            "package differently from those distros; false positives possible when Arch "
+            "backports a patch without a version bump."
         ),
         "stats": stats,
-        "affected_count": len(affected),
-        "total_vulns": sum(len(a["vulns"]) for a in affected),
+        "affected_count": sum(1 for a in affected if a["vulns"]),
+        "total_vulns": unique("vulns"),
+        "unfixed_count": sum(1 for a in affected if a["unfixed"]),
+        "total_unfixed": unique("unfixed"),
         "affected": affected,
     }, indent=2))
 
-    print(f"Done. {len(affected)} affected packages, {kept} package/CVE pairs kept.")
+    print(
+        f"Done. {sum(1 for a in affected if a['vulns'])} pkgbases with fixable CVEs, "
+        f"{sum(1 for a in affected if a['unfixed'])} with unfixed-upstream CVEs."
+    )
     return 0
 
 
