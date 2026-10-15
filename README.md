@@ -32,6 +32,11 @@ Once a day, a GitHub Action:
    Arch's own `major.minor` branch counts even when a distro backported it
    to an older line. Results:
    - **affected** — Arch is below a fix: listed.
+   - **uncertain** — in range, but the comparison can't be trusted: Arch
+     sits between fixes on different release lines, Arch builds from a VCS
+     snapshot, the distro's fix is itself a VCS snapshot (`1.4~hg15896`,
+     `6.6+20251231`), or two-part "decimal" versions don't line up
+     (`2.88` vs `2.720`). Listed separately behind a toggle.
    - **unfixed** — no fix exists anywhere yet: listed separately (hidden
      behind a toggle on the page).
    - **fixed** — Arch already has the fix: dropped.
@@ -40,7 +45,8 @@ Once a day, a GitHub Action:
      Debian's OpenStack `keystone` 22+): treated as a different project,
      dropped.
 
-   The same CVE reported by several distros is merged into one entry.
+   The same CVE reported by several distros is merged into one entry, and
+   Debian DSA/DLA advisories that only repeat per-CVE records are skipped.
 5. Writes `data/packages.json` and `data/vulns.json`, commits them, and
    deploys the static site (page + those two files) via GitHub Pages.
 

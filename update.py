@@ -133,10 +133,12 @@ _REVISION_RE = re.compile(r"-[0-9][0-9A-Za-z.+~]*$")
 _REALLY_RE = re.compile(r"^.*[+~]really", re.I)
 # Debian repack / backport markers glued onto the upstream part
 _DISTRO_SUFFIX_RE = re.compile(
-    r"[+~](?:dfsg|ds|repack|deb\d|ubuntu|build|nmu)[0-9A-Za-z.+~]*$", re.I
+    r"[+~](?:dfsg|ds|repack|deb\d|ubuntu|build|nmu|real)[0-9A-Za-z.+~]*$", re.I
 )
 # Arch writes pre-releases inline ("2.11.0beta2"), Debian with "~" ("2.11.0~beta2")
 _INLINE_PRE_RE = re.compile(r"(?<=\d)[._-]?(alpha|beta|pre|rc)(?=\d|$)", re.I)
+# Date versions: Arch "2026_10_09" vs Debian "20261009"
+_DATE_RE = re.compile(r"^((?:19|20)\d{2})[._-](\d{2})[._-](\d{2})(?!\d)")
 
 
 def upstream_version(ver: str) -> str:
@@ -155,7 +157,7 @@ def upstream_version(ver: str) -> str:
     ver = _DISTRO_SUFFIX_RE.sub("", ver)
     if "~" not in ver:
         ver = _INLINE_PRE_RE.sub(r"~\1", ver, count=1)
-    return ver
+    return _DATE_RE.sub(r"\1\2\3", ver)
 
 
 _TOKEN_RE = re.compile(r"\d+|[A-Za-z]+")
@@ -252,6 +254,8 @@ def evaluate(record: dict, name: str, version: str) -> tuple[str, list[str]]:
 
     Returns (status, fixed_versions) where status is one of:
       "affected"  — inside an affected range that has a known fix
+      "uncertain" — inside an affected range, but the comparison can't be
+                    trusted (see _uncertain)
       "unfixed"   — no fix exists anywhere in the record yet
       "fixed"     — Arch is at or past the fix
       "mismatch"  — would be affected, but Arch's version is far below anything
@@ -297,7 +301,7 @@ def evaluate(record: dict, name: str, version: str) -> tuple[str, list[str]]:
     # distro has ever recorded under this name (e.g. Arch's keystone assembler
     # 0.9 vs. Debian's OpenStack keystone 22+). Ordinary lag (chromium 154 vs.
     # a fix in 155) stays well inside the margin.
-    if status in ("affected", "unfixed"):
+    if status in ("affected", "uncertain", "unfixed"):
         arch_major = _major(version)
         majors = [m for m in (_major(v) for v in known if v) if m is not None]
         if arch_major is not None and majors and arch_major * 2 + 1 < min(majors):
@@ -322,13 +326,53 @@ def _status(
             return vercmp(version, hi) <= 0
         return True
 
-    if any(inside(*iv) for iv in intervals if iv[2] != "open"):
-        return "affected"
+    hits = [iv for iv in intervals if iv[2] != "open" and inside(*iv)]
+    if hits:
+        return "uncertain" if _uncertain(version, hits, fixes) else "affected"
     # Open-ended ranges only mean "unfixed" when nobody has a fix yet; otherwise
     # they are just a distro release that hasn't picked up the fix.
     if not fixes and any(inside(*iv) for iv in intervals if iv[2] == "open"):
         return "unfixed"
     return "fixed"
+
+
+# Fixed version is an unreleased VCS snapshot: "1.4~hg15896" (before 1.4),
+# "6.6+20251231" / "3.0.7+git20220909" (after 6.6 / 3.0.7), "2026.20260303.78225".
+_SNAPSHOT_RE = re.compile(r"([~+.])(?:(?:hg|git|svn|bzr|cvs)\w*|(?:19|20)\d{6}(?!\d))", re.I)
+# Arch builds from a VCS snapshot: "2.1.1791988261+2a8e017", "1.2.r45.gabc1234"
+_ARCH_SNAPSHOT_RE = re.compile(r"\+[0-9a-f]{7,}$|\.r\d+\.g[0-9a-f]+$", re.I)
+_DECIMAL_RE = re.compile(r"^\d+\.(\d+)$")
+
+
+def _uncertain(version: str, hits: list[tuple[str, str | None, str]], fixes: list[str]) -> bool:
+    """
+    True when Arch's version falls in an affected range but the comparison is
+    unreliable:
+      - Arch is already past a fix on another release line, so it sits
+        between lines and we can't tell whether its own line got the fix;
+      - Arch builds from a VCS snapshot, which may well include the fix;
+      - every fix that puts Arch in range is a distro VCS snapshot whose
+        position relative to Arch's release is unknown, or a two-part
+        "decimal" version whose digits don't line up ("2.88" vs "2.720").
+    """
+    if any(vercmp(version, f) >= 0 for f in fixes):
+        return True
+    if _ARCH_SNAPSHOT_RE.search(version):
+        return True
+
+    def decisive(hi: str | None) -> bool:
+        if hi is None:
+            return True
+        m = _SNAPSHOT_RE.search(hi)
+        if m:
+            # Only a snapshot taken after a release newer than Arch's is conclusive.
+            return m.group(1) != "~" and vercmp(version, hi[: m.start()]) < 0
+        a, b = _DECIMAL_RE.match(version), _DECIMAL_RE.match(hi)
+        if a and b and len(a.group(1)) != len(b.group(1)):
+            return False
+        return True
+
+    return not any(decisive(hi) for _, hi, _ in hits)
 
 
 # ---------------------------------------------------------------------------
@@ -371,6 +415,10 @@ def load_osv_records(names: set[str]) -> dict[str, list[dict[str, Any]]]:
     return index
 
 
+_CVE_IN_ID = re.compile(r"CVE-\d{4}-\d{4,7}")
+_ADVISORY_ID = re.compile(r"^(?:DSA|DLA|DTSA)-")
+
+
 def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
     """Pick the fields we show on the static page."""
     severity = ""
@@ -380,7 +428,8 @@ def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
             break
     vid = record.get("id", "")
     aliases = record.get("aliases", []) or []
-    cve = next((a for a in aliases if a.startswith("CVE-")), "")
+    linked = aliases + (record.get("upstream", []) or [])
+    cve = next((a for a in linked if a.startswith("CVE-")), "")
     if not cve:
         m = re.search(r"CVE-\d{4}-\d{4,7}", vid)
         if m:
@@ -453,28 +502,45 @@ def main() -> int:
     print("Loading OSV.dev exports...", flush=True)
     records = load_osv_records({b["query"] for b in bases.values()})
 
-    stats = {"affected": 0, "unfixed": 0, "fixed": 0, "mismatch": 0, "unknown": 0}
+    stats = {
+        "affected": 0, "uncertain": 0, "unfixed": 0, "fixed": 0,
+        "mismatch": 0, "unknown": 0, "duplicate_advisory": 0,
+    }
     affected: list[dict[str, Any]] = []
     for b in bases.values():
         recs = records.get(b["query"].lower())
         if not recs:
             continue
         found: list[dict[str, Any]] = []
+        uncertain: list[dict[str, Any]] = []
         unfixed: list[dict[str, Any]] = []
+        # Per-CVE records present for this name; DSA/DLA advisories that only
+        # repeat them are skipped.
+        own = {m.group(0) for r in recs if (m := _CVE_IN_ID.search(r.get("id", "")))}
         for rec in recs:
+            if _ADVISORY_ID.match(rec.get("id", "")):
+                ups = {u for u in rec.get("upstream", []) or [] if u.startswith("CVE-")}
+                if ups and ups <= own:
+                    stats["duplicate_advisory"] += 1
+                    continue
             status, fixes = evaluate(rec, b["query"], b["upstream_version"])
             stats[status] += 1
             if status == "affected":
                 found.append({**summarize_record(rec), "fixed_versions": fixes})
+            elif status == "uncertain":
+                uncertain.append({**summarize_record(rec), "fixed_versions": fixes})
             elif status == "unfixed":
                 unfixed.append({**summarize_record(rec), "fixed_versions": []})
-        if found or unfixed:
+        if found or uncertain or unfixed:
             b.pop("query")
             b["vulns"] = merge_by_cve(found)
-            b["unfixed"] = merge_by_cve(unfixed)
+            seen = {v["cve"] or v["id"] for v in b["vulns"]}
+            b["uncertain"] = [v for v in merge_by_cve(uncertain) if (v["cve"] or v["id"]) not in seen]
+            seen |= {v["cve"] or v["id"] for v in b["uncertain"]}
+            b["unfixed"] = [v for v in merge_by_cve(unfixed) if (v["cve"] or v["id"]) not in seen]
             affected.append(b)
 
-    affected.sort(key=lambda x: (-len(x["vulns"]), -len(x["unfixed"]), x["name"]))
+    affected.sort(key=lambda x: (-len(x["vulns"]), -len(x["uncertain"]), -len(x["unfixed"]), x["name"]))
     print(f"  verification (package/record pairs): {stats}", flush=True)
 
     def unique(field: str) -> int:
@@ -490,13 +556,16 @@ def main() -> int:
             "Arch is not an OSV ecosystem. CVEs come from the " + " / ".join(PROXY_ECOSYSTEMS)
             + " OSV data, matched by Arch pkgbase name, then verified locally "
             "against the affected ranges in each record. CVEs with no fix anywhere yet are "
-            "listed separately as unfixed. False negatives possible when Arch names a "
+            "listed separately as unfixed, and matches whose version comparison can't be "
+            "trusted (snapshots, packages between release lines) as uncertain. False negatives possible when Arch names a "
             "package differently from those distros; false positives possible when Arch "
             "backports a patch without a version bump."
         ),
         "stats": stats,
         "affected_count": sum(1 for a in affected if a["vulns"]),
         "total_vulns": unique("vulns"),
+        "uncertain_count": sum(1 for a in affected if a["uncertain"]),
+        "total_uncertain": unique("uncertain"),
         "unfixed_count": sum(1 for a in affected if a["unfixed"]),
         "total_unfixed": unique("unfixed"),
         "affected": affected,
@@ -504,6 +573,7 @@ def main() -> int:
 
     print(
         f"Done. {sum(1 for a in affected if a['vulns'])} pkgbases with fixable CVEs, "
+        f"{sum(1 for a in affected if a['uncertain'])} with uncertain matches, "
         f"{sum(1 for a in affected if a['unfixed'])} with unfixed-upstream CVEs."
     )
     return 0
