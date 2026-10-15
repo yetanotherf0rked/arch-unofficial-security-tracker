@@ -38,7 +38,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from archsec.versions import split_arch, upstream_version, vercmp  # noqa: E402
+from archsec.versions import split_arch, tokens, upstream_version, vercmp  # noqa: E402
 
 REPORTS = ROOT / "reports"
 UA = "arch-unofficial-security-tracker/compare (+https://github.com/yetanotherf0rked/arch-unofficial-security-tracker)"
@@ -194,6 +194,14 @@ def mitre_url(cid: str) -> str:
     return MITRE_URL.format(year=year, bucket=int(num) // 1000, id=cid)
 
 
+def _at_most(version: str, bound: str) -> bool:
+    """version <= bound; "7.2.*" covers the whole 7.2 line (the kernel CNA writes these)."""
+    if bound.endswith(".*"):
+        prefix = tokens(bound[:-2])
+        return vercmp(".".join(tokens(version)[:len(prefix)]), ".".join(prefix)) <= 0
+    return vercmp(version, upstream_version(bound)) <= 0
+
+
 def _in_mitre_entry(entry: dict, version: str) -> bool | None:
     verdict: bool | None = None
     for v in entry.get("versions", []) or []:
@@ -201,31 +209,43 @@ def _in_mitre_entry(entry: dict, version: str) -> bool | None:
             continue
         lo = v.get("version", "")
         hi_lt, hi_le = v.get("lessThan"), v.get("lessThanOrEqual")
+        # Free text some CNAs put in "version": "< 3.1.9", "<= 2.0".
+        m = re.match(r"^\s*(<=?)\s*(\S+)$", lo)
+        if m and hi_lt is None and hi_le is None:
+            lo, hi_lt, hi_le = "0", (m.group(2) if m.group(1) == "<" else None), (m.group(2) if m.group(1) == "<=" else None)
         if hi_lt is None and hi_le is None:
             inside = lo not in ("", "*") and vercmp(version, upstream_version(lo)) == 0
         else:
-            hi = hi_lt if hi_lt not in (None, "*") else hi_le
             # Some CNAs (e.g. Chrome) write version == lessThan to mean "below X":
             # a lower bound that isn't below the upper one carries no information.
-            no_lower = lo in ("0", "", "*") or (
-                hi not in (None, "*") and vercmp(upstream_version(lo), upstream_version(hi)) >= 0
-            )
+            no_lower = lo in ("0", "", "*")
+            if not no_lower and hi_lt not in (None, "*"):
+                no_lower = vercmp(upstream_version(lo), upstream_version(hi_lt)) >= 0
+            elif not no_lower and hi_le not in (None, "*"):
+                no_lower = not _at_most(upstream_version(lo), hi_le) or (
+                    not hi_le.endswith(".*") and vercmp(upstream_version(lo), upstream_version(hi_le)) == 0
+                )
             inside = no_lower or vercmp(version, upstream_version(lo)) >= 0
             if hi_lt not in (None, "*"):
                 inside = inside and vercmp(version, upstream_version(hi_lt)) < 0
             if hi_le not in (None, "*"):
-                inside = inside and vercmp(version, upstream_version(hi_le)) <= 0
+                inside = inside and _at_most(version, hi_le)
         if inside:
             return v.get("status") == "affected"
     # Outside every listed range: fall back to defaultStatus. CNAs often omit it
     # while listing "affected < X"; read that as fixed from X on.
     default = entry.get("defaultStatus")
+    ranges = [v for v in entry.get("versions", []) or [] if v.get("versionType") not in ("git", "rpm", "deb")]
     has_affected_range = any(
-        v.get("status") == "affected" and (v.get("lessThan") or v.get("lessThanOrEqual"))
-        and v.get("versionType") not in ("git", "rpm", "deb")
-        for v in entry.get("versions", []) or []
+        v.get("status") == "affected" and (v.get("lessThan") or v.get("lessThanOrEqual")) for v in ranges
     )
-    if default == "affected":
+    lists_unaffected = any(v.get("status") == "unaffected" for v in ranges)
+    if default == "affected" and has_affected_range and not lists_unaffected:
+        # "affected < 10.08.0" with defaultStatus "affected": the default is
+        # boilerplate, not a claim about later versions (the kernel CNA, which
+        # means it, lists the unaffected ranges explicitly).
+        verdict = None
+    elif default == "affected":
         verdict = True
     elif default == "unaffected" and entry.get("versions"):
         verdict = False
@@ -391,8 +411,11 @@ def main() -> int:
                 t[k] = t.get(k, 0) + 1
         return dict(sorted(t.items()))
 
-    def says(p: dict, verdict: str) -> bool:
-        return p.get("nvd", {}).get("verdict") == verdict or p.get("mitre", {}).get("verdict") == verdict
+    def says(p: dict, verdict: str, by_name: bool = False) -> bool:
+        return any(
+            p.get(src, {}).get("verdict") == verdict and (not by_name or p[src].get("matched_by") == "name")
+            for src in ("nvd", "mitre")
+        )
 
     report = {
         "generated_at": int(time.time()),
@@ -409,7 +432,9 @@ def main() -> int:
             "tracker_only": sorted(ours - rep_names),
         },
         "disagreements": [p for p in pairs if p["kind"] == "vulnerable" and says(p, "not_affected")],
-        "possible_misses": [p for p in pairs if p["kind"] == "fixed" and says(p, "affected")],
+        # Only records matched by product name: the any-product fallback compares
+        # e.g. a Chrome CVE's Chrome versions with WebKitGTK's.
+        "possible_misses": [p for p in pairs if p["kind"] == "fixed" and says(p, "affected", by_name=True)],
         "detail": pairs,
     }
     REPORTS.mkdir(exist_ok=True)

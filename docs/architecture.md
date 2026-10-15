@@ -94,6 +94,15 @@ and in one silent failure mode of the matching.
 7. **No tests.** The version logic had been corrected by hand several
    times; nothing kept those corrections from regressing.
 
+8. **The audit tool only measured half the problem, and misread some
+   records.** `compare_sources.py` checked whether reported issues were
+   real (precision) but never whether dropped ones were (misses), which is
+   where flaw 2 hid. Its MITRE reader also took the kernel CNA's
+   `lessThanOrEqual: "7.2.*"` as `7.2` (so every 6.x LTS kernel read as
+   unaffected), treated boilerplate `defaultStatus: "affected"` as a claim
+   about versions above the listed ranges, and read free-text versions
+   such as `"< 3.1.9"` as exact versions.
+
 ## 3. New architecture
 
 The principle: **all fuzzy matching happens once, in the builder, and
@@ -222,8 +231,10 @@ is installed and below `fixed`, or when `fixed` is null.
 * `tests.yml` runs the Python suite on 3.10 and the JavaScript tests.
 * `compare.yml` builds the feed, then audits it against NVD and MITRE,
   now including a **miss check**: a sample of recent issues the tracker
-  considers fixed in the repos, checked for official records that still
-  call Arch's version affected.
+  considers fixed in the repos (at most 40 per package), checked for
+  official records that still call Arch's version affected, counting only
+  records matched by product name. The MITRE reader handles `X.Y.*`
+  bounds, boilerplate `defaultStatus` and free-text versions.
 
 ## 4. Effect on the 2026-10-15 data
 
