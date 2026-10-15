@@ -1,0 +1,12 @@
+{
+  "generated_at": 0,
+  "sources": {
+    "packages": "https://geo.mirror.pkgbuild.com/<repo>/os/x86_64/<repo>.db.tar.gz (repos: core, extra, multilib)",
+    "vulnerabilities": "OSV.dev — proxied via Debian, Ubuntu, Alpine"
+  },
+  "limitations": "No data yet — the daily GitHub Action will populate this. You can also run `python update.py` locally.",
+  "stats": {},
+  "affected_count": 0,
+  "total_vulns": 0,
+  "affected": []
+}

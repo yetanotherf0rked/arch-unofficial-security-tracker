@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arch Linux Security Tracker</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --sev-crit: #f85149;
+    --sev-high: #ff7b72;
+    --sev-med:  #d29922;
+    --sev-low:  #8b949e;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #ffffff;
+      --panel: #f6f8fa;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #656d76;
+      --accent: #0969da;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --panel: #f6f8fa;
+    --border: #d0d7de;
+    --text: #1f2328;
+    --muted: #656d76;
+    --accent: #0969da;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 16px 48px;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+  header { max-width: 1100px; margin: 0 auto; padding: 24px 0 12px; }
+  main   { max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .subtitle { color: var(--muted); margin: 0 0 16px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+  .meta strong { color: var(--text); font-weight: 600; }
+  .notice {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  input[type="search"], select {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font: inherit;
+  }
+  input[type="search"] { flex: 1; min-width: 200px; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
+  thead th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+  }
+  thead th:hover { color: var(--text); }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: color-mix(in srgb, var(--panel), var(--text) 4%); }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; }
+  .cve-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cve {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: color-mix(in srgb, var(--panel), var(--text) 8%);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .cve:hover { border-color: var(--accent); color: var(--accent); }
+  .badge-repo {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .count-badge {
+    display: inline-block;
+    min-width: 22px;
+    text-align: center;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--sev-med);
+    color: #000;
+  }
+  .count-badge.c3 { background: var(--sev-high); color: #fff; }
+  .count-badge.c5 { background: var(--sev-crit); color: #fff; }
+  footer { margin-top: 32px; color: var(--muted); font-size: 12px; text-align: center; }
+  a { color: var(--accent); }
+  .empty { padding: 48px 16px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Arch Linux Security Tracker</h1>
+  <p class="subtitle">Upstream CVEs affecting packages in the official Arch repos (core / extra / multilib).</p>
+  <div class="meta" id="meta">
+    <span>loading…</span>
+  </div>
+  <div class="notice" id="notice"></div>
+</header>
+<main>
+  <div class="controls">
+    <input type="search" id="q" placeholder="Filter packages or CVE IDs…" autocomplete="off">
+    <select id="repoFilter">
+      <option value="">all repos</option>
+      <option value="core">core</option>
+      <option value="extra">extra</option>
+      <option value="multilib">multilib</option>
+    </select>
+  </div>
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th data-sort="name">Package</th>
+        <th data-sort="repo">Repo</th>
+        <th data-sort="version">Installed</th>
+        <th>Fixed in</th>
+        <th data-sort="count"># CVEs</th>
+        <th>CVEs</th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+      <tr><td colspan="6" class="empty">loading data…</td></tr>
+    </tbody>
+  </table>
+</main>
+<footer>
+  Data: <a href="https://osv.dev">OSV.dev</a> (aggregates NVD, GHSA, Debian, Ubuntu, Alpine) · Packages: official Arch repo DBs ·
+  <a id="repoLink" href="#">source</a>
+</footer>
+<script>
+(async () => {
+  const rows = document.getElementById("rows");
+  const meta = document.getElementById("meta");
+  const notice = document.getElementById("notice");
+  const q = document.getElementById("q");
+  const repoFilter = document.getElementById("repoFilter");
+
+  let data;
+  try {
+    const resp = await fetch("data/vulns.json", { cache: "no-cache" });
+    data = await resp.json();
+  } catch (e) {
+    rows.innerHTML = `<tr><td colspan="6" class="empty">Failed to load data/vulns.json: ${e}</td></tr>`;
+    return;
+  }
+
+  const when = new Date(data.generated_at * 1000);
+  meta.innerHTML =
+    `<span><strong>${data.affected_count}</strong> affected packages</span>` +
+    `<span><strong>${data.total_vulns}</strong> unique CVEs</span>` +
+    `<span>updated <strong>${when.toISOString().replace("T", " ").slice(0, 16)}Z</strong></span>`;
+
+  notice.textContent = data.limitations || "";
+
+  let sortKey = "count";
+  let sortDir = -1;
+
+  function render() {
+    const term = q.value.trim().toLowerCase();
+    const repo = repoFilter.value;
+    let items = data.affected.filter(p => {
+      if (repo && p.repo !== repo) return false;
+      if (!term) return true;
+      if (p.name.toLowerCase().includes(term)) return true;
+      return p.vulns.some(v =>
+        (v.id || "").toLowerCase().includes(term) ||
+        (v.cve || "").toLowerCase().includes(term)
+      );
+    });
+
+    items.sort((a, b) => {
+      let va, vb;
+      switch (sortKey) {
+        case "count": va = a.vulns.length; vb = b.vulns.length; break;
+        case "name": va = a.name; vb = b.name; break;
+        case "repo": va = a.repo; vb = b.repo; break;
+        case "version": va = a.version; vb = b.version; break;
+      }
+      if (va < vb) return -1 * sortDir;
+      if (va > vb) return 1 * sortDir;
+      return 0;
+    });
+
+    if (items.length === 0) {
+      rows.innerHTML = `<tr><td colspan="6" class="empty">no matches</td></tr>`;
+      return;
+    }
+
+    const html = items.map(p => {
+      const n = p.vulns.length;
+      const cls = n >= 5 ? "c5" : n >= 3 ? "c3" : "";
+      const cves = p.vulns.map(v => {
+        const label = v.cve || v.id;
+        const url = `https://osv.dev/vulnerability/${encodeURIComponent(v.id)}`;
+        const title = [v.severity, v.summary].filter(Boolean).join(" — ").replace(/"/g, "&quot;");
+        return `<a class="cve" href="${url}" target="_blank" rel="noopener" title="${title}">${label}</a>`;
+      }).join("");
+      // Pick the lowest fixed version across all CVEs for display (what Arch would need to reach)
+      const allFixes = new Set();
+      p.vulns.forEach(v => (v.fixed_versions || []).forEach(f => allFixes.add(f)));
+      const fixed = [...allFixes].slice(0, 3).join(", ") + (allFixes.size > 3 ? " …" : "");
+      return `<tr>
+        <td class="mono">${p.name}</td>
+        <td><span class="badge-repo">${p.repo}</span></td>
+        <td class="mono">${p.version}</td>
+        <td class="mono" style="color:var(--muted);font-size:12px">${fixed || ""}</td>
+        <td><span class="count-badge ${cls}">${n}</span></td>
+        <td><div class="cve-list">${cves}</div></td>
+      </tr>`;
+    }).join("");
+    rows.innerHTML = html;
+  }
+
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => {
+      const k = th.dataset.sort;
+      if (sortKey === k) sortDir = -sortDir;
+      else { sortKey = k; sortDir = (k === "count") ? -1 : 1; }
+      render();
+    });
+  });
+  q.addEventListener("input", render);
+  repoFilter.addEventListener("change", render);
+  render();
+
+  const repoLink = document.getElementById("repoLink");
+  const loc = window.location.hostname;
+  if (loc.endsWith("github.io")) {
+    const [user] = loc.split(".");
+    const path = window.location.pathname.split("/").filter(Boolean)[0] || "";
+    repoLink.href = `https://github.com/${user}/${path}`;
+  } else {
+    repoLink.textContent = "";
+  }
+})();
+</script>
+</body>
+</html>
