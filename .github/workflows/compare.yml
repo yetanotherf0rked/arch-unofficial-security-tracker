@@ -38,5 +38,6 @@ jobs:
             echo "No report changes."
           else
             git commit -m "reports: source comparison $(date -u +%Y-%m-%dT%H:%MZ)"
-            git push
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
           fi
