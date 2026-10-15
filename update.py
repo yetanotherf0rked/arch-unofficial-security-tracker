@@ -68,7 +68,7 @@ def http_get(url: str) -> bytes:
 
 
 def fetch_repo_db(repo: str) -> list[dict[str, str]]:
-    """Fetch and parse a repository .db.tar.gz, return [{name, base, version, repo}]."""
+    """Fetch and parse a repository .db.tar.gz, return [{name, base, version, repo, …}]."""
     url = f"{MIRROR}/{repo}/os/{ARCH}/{repo}.db.tar.gz"
     print(f"  fetching {url}", flush=True)
     blob = http_get(url)
@@ -90,6 +90,9 @@ def fetch_repo_db(repo: str) -> list[dict[str, str]]:
                     "base": fields.get("BASE") or name,
                     "version": version,
                     "repo": repo,
+                    "arch": fields.get("ARCH", ARCH),
+                    "url": fields.get("URL", ""),
+                    "builddate": int(fields.get("BUILDDATE") or 0),
                 })
     return out
 
@@ -419,6 +422,14 @@ _CVE_IN_ID = re.compile(r"CVE-\d{4}-\d{4,7}")
 _ADVISORY_ID = re.compile(r"^(?:DSA|DLA|DTSA)-")
 
 
+def _clip(text: str, n: int) -> str:
+    """Shorten to at most n characters at a word boundary."""
+    text = " ".join(text.split())
+    if len(text) <= n:
+        return text
+    return text[: n - 1].rsplit(" ", 1)[0].rstrip(",.;:") + "…"
+
+
 def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
     """Pick the fields we show on the static page."""
     severity = ""
@@ -437,7 +448,7 @@ def summarize_record(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": vid,
         "cve": cve,
-        "summary": (record.get("summary") or record.get("details") or "").strip()[:300],
+        "summary": _clip((record.get("summary") or record.get("details") or "").strip(), 300),
         "severity": severity,
         "aliases": aliases,
         "modified": record.get("modified", ""),
@@ -494,9 +505,15 @@ def main() -> int:
             "version": p["version"],
             "upstream_version": upstream_version(p["version"]),
             "repo": p["repo"],
+            "arch": p.get("arch", ARCH),
+            "url": p.get("url", ""),
+            "builddate": 0,
             "packages": [],
         })
         b["packages"].append(p["name"])
+        b["builddate"] = max(b["builddate"], p.get("builddate", 0))
+        if p["name"] == p["base"]:  # the package named like its base links best
+            b["arch"], b["url"] = p.get("arch", ARCH), p.get("url", "") or b["url"]
     print(f"  pkgbases: {len(bases)}", flush=True)
 
     print("Loading OSV.dev exports...", flush=True)

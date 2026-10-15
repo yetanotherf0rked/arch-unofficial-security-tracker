@@ -133,6 +133,27 @@
   .subpkgs { color: var(--muted); font-size: 11.5px; }
   label.toggle { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
   .table-wrap { overflow-x: auto; }
+  .cve-line { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
+  .more {
+    font: inherit; font-size: 11.5px; cursor: pointer; padding: 1px 7px; border-radius: 3px;
+    border: 1px solid var(--border); background: transparent; color: var(--accent);
+  }
+  .more:hover { border-color: var(--accent); }
+  .pkg a.name { color: var(--text); text-decoration: none; font-weight: 600; }
+  .pkg a.name:hover { color: var(--accent); text-decoration: underline; }
+  .links { font-size: 11.5px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+  .cve, thead th, td.nowrap { white-space: nowrap; }
+  .links a { color: var(--muted); }
+  .links a:hover { color: var(--accent); }
+  .when { white-space: nowrap; font-size: 12px; }
+  .when small { display: block; color: var(--muted); }
+  tr.detail > td { background: var(--bg); padding: 0 10px 12px; }
+  .detail table { border: none; background: transparent; margin-top: 4px; }
+  .detail td, .detail th { padding: 5px 8px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+  .detail th { position: static; text-transform: none; letter-spacing: 0; cursor: default; }
+  .detail .summary { color: var(--muted); max-width: 520px; }
+  .detail .refs a { margin-right: 8px; white-space: nowrap; }
+  .tag { font-size: 10.5px; padding: 0 5px; border-radius: 3px; border: 1px solid var(--border); color: var(--muted); }
 </style>
 </head>
 <body>
@@ -147,11 +168,19 @@
 <main>
   <div class="controls">
     <input type="search" id="q" placeholder="Filter packages or CVE IDs…" autocomplete="off">
-    <select id="repoFilter">
+    <select id="repoFilter" aria-label="Repository">
       <option value="">all repos</option>
       <option value="core">core</option>
       <option value="extra">extra</option>
       <option value="multilib">multilib</option>
+    </select>
+    <select id="since" aria-label="Latest CVE published within">
+      <option value="0">any time</option>
+      <option value="1">last 24 hours</option>
+      <option value="7">last 7 days</option>
+      <option value="30">last 30 days</option>
+      <option value="90">last 90 days</option>
+      <option value="365">last year</option>
     </select>
     <label class="toggle"><input type="checkbox" id="showUncertain"> include uncertain</label>
     <label class="toggle"><input type="checkbox" id="showUnfixed"> include unfixed upstream</label>
@@ -160,146 +189,216 @@
   <table id="tbl">
     <thead>
       <tr>
+        <th data-sort="latest">Latest CVE ▾</th>
         <th data-sort="name">Package (base)</th>
-        <th data-sort="repo">Repo</th>
         <th data-sort="version">Installed</th>
         <th>Fixed in</th>
-        <th data-sort="count"># CVEs</th>
-        <th>CVEs</th>
+        <th data-sort="count">CVEs</th>
       </tr>
     </thead>
     <tbody id="rows">
-      <tr><td colspan="6" class="empty">loading data…</td></tr>
+      <tr><td colspan="5" class="empty">loading data…</td></tr>
     </tbody>
   </table>
   </div>
 </main>
 <footer>
-  Data: <a href="https://osv.dev">OSV.dev</a> (aggregates NVD, GHSA, Debian, Ubuntu, Alpine) · Packages: official Arch repo DBs ·
+  Data: <a href="https://osv.dev">OSV.dev</a> (Debian / Alpine security trackers) · Packages: official Arch repo DBs ·
   <a id="repoLink" href="#">source</a>
 </footer>
 <script>
 (async () => {
-  const rows = document.getElementById("rows");
-  const meta = document.getElementById("meta");
-  const notice = document.getElementById("notice");
-  const q = document.getElementById("q");
-  const repoFilter = document.getElementById("repoFilter");
-  const showUnfixed = document.getElementById("showUnfixed");
-  const showUncertain = document.getElementById("showUncertain");
+  const $ = id => document.getElementById(id);
+  const rows = $("rows"), meta = $("meta"), notice = $("notice"), q = $("q");
+  const repoFilter = $("repoFilter"), since = $("since");
+  const showUnfixed = $("showUnfixed"), showUncertain = $("showUncertain");
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
     ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+  const enc = encodeURIComponent;
+  const CHIPS = 2;  // CVE chips shown on the collapsed line
 
   let data;
   try {
     const resp = await fetch("data/vulns.json", { cache: "no-cache" });
     data = await resp.json();
   } catch (e) {
-    rows.innerHTML = `<tr><td colspan="6" class="empty">Failed to load data/vulns.json: ${esc(e)}</td></tr>`;
+    rows.innerHTML = `<tr><td colspan="5" class="empty">Failed to load data/vulns.json: ${esc(e)}</td></tr>`;
     return;
   }
 
-  const when = new Date(data.generated_at * 1000);
+  // Dates in the viewer's own time zone.
+  const dateFmt = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric" });
+  const dateTimeFmt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+  const relFmt = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const ts = iso => { const t = Date.parse(iso || ""); return Number.isNaN(t) ? 0 : t; };
+  const relative = t => {
+    const days = Math.round((t - Date.now()) / 86400000);
+    if (Math.abs(days) < 1) return relFmt.format(Math.round((t - Date.now()) / 3600000), "hour");
+    if (Math.abs(days) < 60) return relFmt.format(days, "day");
+    if (Math.abs(days) < 730) return relFmt.format(Math.round(days / 30), "month");
+    return relFmt.format(Math.round(days / 365), "year");
+  };
+
   meta.innerHTML =
     `<span><strong>${data.affected_count}</strong> affected packages</span>` +
     `<span><strong>${data.total_vulns}</strong> unique CVEs with a fix</span>` +
     `<span><strong>${data.total_uncertain ?? 0}</strong> uncertain</span>` +
     `<span><strong>${data.total_unfixed ?? 0}</strong> unfixed upstream</span>` +
-    `<span>updated <strong>${when.toISOString().replace("T", " ").slice(0, 16)}Z</strong></span>`;
-
+    `<span>data refreshed <strong>${esc(dateTimeFmt.format(new Date(data.generated_at * 1000)))}</strong></span>`;
   notice.textContent = data.limitations || "";
 
-  let sortKey = "count";
-  let sortDir = -1;
+  // Same mapping Arch's devtools use for packaging repo paths on GitLab.
+  const gitlabPath = n => n
+    .replace(/([a-zA-Z0-9]+)\+([a-zA-Z]+)/g, "$1-$2").replace(/\+/g, "plus")
+    .replace(/[^a-zA-Z0-9_\-.]/g, "-").replace(/[_\-]{2,}/g, "-").replace(/^tree$/, "unix-tree");
+  const gitlab = p => `https://gitlab.archlinux.org/archlinux/packaging/packages/${gitlabPath(p.name)}`;
+  const pkgPage = p => {
+    const name = (p.packages || []).includes(p.name) ? p.name : (p.packages || [p.name])[0];
+    return `https://archlinux.org/packages/${enc(p.repo)}/${enc(p.arch || "x86_64")}/${enc(name)}/`;
+  };
+  const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "";
+  const cveLinks = v => {
+    const links = [];
+    if (v.cve) {
+      links.push(["CVE.org", `https://www.cve.org/CVERecord?id=${enc(v.cve)}`]);
+      links.push(["NVD", `https://nvd.nist.gov/vuln/detail/${enc(v.cve)}`]);
+      links.push(["Debian", `https://security-tracker.debian.org/tracker/${enc(v.cve)}`]);
+    }
+    for (const id of v.sources || [v.id]) links.push([id.startsWith("ALPINE") ? "OSV (Alpine)" : "OSV", `https://osv.dev/vulnerability/${enc(id)}`]);
+    return links;
+  };
+
+  let sortKey = "latest", sortDir = -1;
+  const expanded = new Set();
 
   function render() {
     const term = q.value.trim().toLowerCase();
     const repo = repoFilter.value;
+    const windowMs = Number(since.value) * 86400000;
+    const kindOf = p => {
+      const m = new Map();
+      (p.unfixed || []).forEach(v => m.set(v.id, "unfixed"));
+      (p.uncertain || []).forEach(v => m.set(v.id, "uncertain"));
+      return m;
+    };
     const vulnsOf = p => p.vulns
       .concat(showUncertain.checked ? (p.uncertain || []) : [])
-      .concat(showUnfixed.checked ? (p.unfixed || []) : []);
+      .concat(showUnfixed.checked ? (p.unfixed || []) : [])
+      .slice().sort((a, b) => ts(b.published) - ts(a.published));
+    const latestOf = p => Math.max(0, ...vulnsOf(p).map(v => ts(v.published)));
+
     let items = data.affected.filter(p => {
       if (repo && p.repo !== repo) return false;
-      if (!vulnsOf(p).length) return false;
+      const list = vulnsOf(p);
+      if (!list.length) return false;
+      if (windowMs && latestOf(p) < Date.now() - windowMs) return false;
       if (!term) return true;
       if (p.name.toLowerCase().includes(term)) return true;
       if ((p.packages || []).some(n => n.toLowerCase().includes(term))) return true;
-      return vulnsOf(p).some(v =>
-        (v.id || "").toLowerCase().includes(term) ||
-        (v.cve || "").toLowerCase().includes(term)
-      );
+      return list.some(v => (v.id || "").toLowerCase().includes(term) || (v.cve || "").toLowerCase().includes(term));
     });
 
+    const keyOf = {
+      count: p => vulnsOf(p).length, name: p => p.name,
+      version: p => p.version, latest: latestOf,
+    }[sortKey];
     items.sort((a, b) => {
-      let va, vb;
-      switch (sortKey) {
-        case "count": va = vulnsOf(a).length; vb = vulnsOf(b).length; break;
-        case "name": va = a.name; vb = b.name; break;
-        case "repo": va = a.repo; vb = b.repo; break;
-        case "version": va = a.version; vb = b.version; break;
-      }
-      if (va < vb) return -1 * sortDir;
-      if (va > vb) return 1 * sortDir;
-      return 0;
+      const va = keyOf(a), vb = keyOf(b);
+      return va < vb ? -sortDir : va > vb ? sortDir : 0;
+    });
+    document.querySelectorAll("th[data-sort]").forEach(th => {
+      th.textContent = th.textContent.replace(/ [▴▾]$/, "") + (th.dataset.sort === sortKey ? (sortDir < 0 ? " ▾" : " ▴") : "");
     });
 
-    if (items.length === 0) {
-      rows.innerHTML = `<tr><td colspan="6" class="empty">no matches</td></tr>`;
+    if (!items.length) {
+      rows.innerHTML = `<tr><td colspan="5" class="empty">no matches</td></tr>`;
       return;
     }
 
-    const html = items.map(p => {
-      const list = vulnsOf(p);
-      const n = list.length;
-      const cls = n >= 5 ? "c5" : n >= 3 ? "c3" : "";
-      const unfixedIds = new Set((p.unfixed || []).map(v => v.id));
-      const uncertainIds = new Set((p.uncertain || []).map(v => v.id));
-      const cves = list.map(v => {
-        const label = v.cve || v.id;
-        const url = `https://osv.dev/vulnerability/${encodeURIComponent(v.id)}`;
-        const isUnfixed = unfixedIds.has(v.id);
-        const isUncertain = uncertainIds.has(v.id);
-        const note = isUnfixed ? "no fix upstream yet"
-          : isUncertain ? `uncertain: Arch's version can't be reliably compared with fix ${(v.fixed_versions || []).join(", ")}` : "";
+    rows.innerHTML = items.map(p => {
+      const list = vulnsOf(p), kinds = kindOf(p), key = `${p.repo}/${p.name}`;
+      const n = list.length, open = expanded.has(key);
+      const badge = n >= 5 ? "c5" : n >= 3 ? "c3" : "";
+      const chip = v => {
+        const kind = kinds.get(v.id) || "";
+        const note = kind === "unfixed" ? "no fix upstream yet"
+          : kind === "uncertain" ? `uncertain: Arch's version can't be reliably compared with fix ${(v.fixed_versions || []).join(", ")}` : "";
         const title = [note, v.severity, v.summary].filter(Boolean).join(" — ");
-        const cls = isUnfixed ? " unfixed" : isUncertain ? " uncertain" : "";
-        return `<a class="cve${cls}" href="${url}" target="_blank" rel="noopener" title="${esc(title)}">${esc(label)}</a>`;
-      }).join("");
+        const href = v.cve ? `https://www.cve.org/CVERecord?id=${enc(v.cve)}` : `https://osv.dev/vulnerability/${enc(v.id)}`;
+        return `<a class="cve ${kind}" href="${href}" target="_blank" rel="noopener" title="${esc(title)}">${esc(v.cve || v.id)}</a>`;
+      };
+      const shown = list.slice(0, CHIPS).map(chip).join("");
+      const toggle = `<button class="more" data-key="${esc(key)}" aria-expanded="${open}">${
+        open ? "hide" : n > CHIPS ? `+${n - CHIPS} · details` : "details"}</button>`;
+
       const subs = (p.packages || []).filter(x => x !== p.name);
+      const upstream = safeUrl(p.url);
+      const links = [
+        `<a href="${gitlab(p)}" target="_blank" rel="noopener">PKGBUILD</a>`,
+        `<a href="${gitlab(p)}/-/issues" target="_blank" rel="noopener">issues</a>`,
+        upstream ? `<a href="${esc(upstream)}" target="_blank" rel="noopener">upstream</a>` : "",
+      ].filter(Boolean).join(" · ");
       const subHtml = subs.length
-        ? `<div class="subpkgs">${esc(subs.slice(0, 4).join(", "))}${subs.length > 4 ? ` +${subs.length - 4}` : ""}</div>`
-        : "";
-      // Pick the lowest fixed version across all CVEs for display (what Arch would need to reach)
+        ? `<div class="subpkgs">${esc(subs.slice(0, 4).join(", "))}${subs.length > 4 ? ` +${subs.length - 4}` : ""}</div>` : "";
+
       const allFixes = new Set();
       list.forEach(v => (v.fixed_versions || []).forEach(f => allFixes.add(f)));
       const fixed = [...allFixes].slice(0, 3).join(", ") + (allFixes.size > 3 ? " …" : "");
-      return `<tr>
-        <td class="mono">${esc(p.name)}${subHtml}</td>
-        <td><span class="badge-repo">${esc(p.repo)}</span></td>
-        <td class="mono">${esc(p.version)}</td>
+      const latest = latestOf(p);
+      const built = p.builddate ? `Arch build: ${dateTimeFmt.format(new Date(p.builddate * 1000))}` : "";
+
+      let html = `<tr>
+        <td class="when">${latest ? `${esc(dateFmt.format(new Date(latest)))}<small>${esc(relative(latest))}</small>` : "—"}</td>
+        <td class="pkg mono"><a class="name" href="${pkgPage(p)}" target="_blank" rel="noopener">${esc(p.name)}</a> <span class="badge-repo">${esc(p.repo)}</span>${subHtml}<div class="links">${links}</div></td>
+        <td class="mono nowrap" title="${esc(built)}">${esc(p.version)}</td>
         <td class="mono" style="color:var(--muted);font-size:12px">${esc(fixed) || "—"}</td>
-        <td><span class="count-badge ${cls}">${n}</span></td>
-        <td><div class="cve-list">${cves}</div></td>
+        <td><div class="cve-line"><span class="count-badge ${badge}">${n}</span>${shown}${toggle}</div></td>
       </tr>`;
+      if (open) {
+        html += `<tr class="detail"><td colspan="5"><table>
+          <thead><tr><th>CVE</th><th>Published</th><th>Status</th><th>Fixed in</th><th>Summary</th><th>Links</th></tr></thead>
+          <tbody>${list.map(v => {
+            const t = ts(v.published);
+            const kind = kinds.get(v.id) || "fixable";
+            const own = cveLinks(v);
+            const known = new Set(own.map(([, u]) => u.replace(/\/$/, "")));
+            const refs = own.map(([label, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(label)}</a>`)
+              .concat((v.references || []).map(safeUrl).filter(u => u && !known.has(u.replace(/\/$/, ""))).slice(0, 3)
+                .map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}">ref ${i + 1}</a>`));
+            return `<tr>
+              <td class="mono">${chip(v)}</td>
+              <td class="when">${t ? esc(dateFmt.format(new Date(t))) : "—"}</td>
+              <td><span class="tag">${esc(kind)}</span></td>
+              <td class="mono">${esc((v.fixed_versions || []).join(", ")) || "—"}</td>
+              <td class="summary">${esc(v.summary) || "—"}</td>
+              <td class="refs">${refs.join("")}</td>
+            </tr>`;
+          }).join("")}</tbody></table></td></tr>`;
+      }
+      return html;
     }).join("");
-    rows.innerHTML = html;
   }
 
+  rows.addEventListener("click", e => {
+    const btn = e.target.closest("button.more");
+    if (!btn) return;
+    const key = btn.dataset.key;
+    expanded.has(key) ? expanded.delete(key) : expanded.add(key);
+    render();
+  });
   document.querySelectorAll("th[data-sort]").forEach(th => {
     th.addEventListener("click", () => {
       const k = th.dataset.sort;
       if (sortKey === k) sortDir = -sortDir;
-      else { sortKey = k; sortDir = (k === "count") ? -1 : 1; }
+      else { sortKey = k; sortDir = (k === "count" || k === "latest") ? -1 : 1; }
       render();
     });
   });
   q.addEventListener("input", render);
-  repoFilter.addEventListener("change", render);
-  showUnfixed.addEventListener("change", render);
-  showUncertain.addEventListener("change", render);
+  [repoFilter, since, showUnfixed, showUncertain].forEach(el => el.addEventListener("change", render));
   render();
 
-  const repoLink = document.getElementById("repoLink");
+  const repoLink = $("repoLink");
   const loc = window.location.hostname;
   if (loc.endsWith("github.io")) {
     const [user] = loc.split(".");
