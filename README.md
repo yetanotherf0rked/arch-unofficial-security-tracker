@@ -1,124 +1,148 @@
-# Arch Linux Security Tracker
+# Arch Linux Security Tracker (unofficial)
 
-A minimal, auto-updating static tracker for CVEs affecting packages in the
-official Arch Linux repositories.
+Tells you whether known CVEs affect **your** Arch Linux machine, and what to
+do about it.
 
-Built because the official Arch Security Tracker stopped publishing
-advisories after June 2025, which also makes `arch-audit` largely stale.
+The official Arch Security Tracker stopped publishing advisories after June
+2025, which also left `arch-audit` without data. This project rebuilds that
+service from structured feeds (Arch's repository databases and OSV.dev),
+refreshed every 6 hours and published on GitHub Pages:
+<https://yetanotherf0rked.github.io/arch-unofficial-security-tracker/>
 
-## What it does
+## Am I affected?
 
-Once a day, a GitHub Action:
+**From a terminal** — reads your pacman database, Python standard library
+only:
 
-1. Pulls `core.db.tar.gz`, `extra.db.tar.gz` and `multilib.db.tar.gz` from
-   a public Arch mirror (`https://geo.mirror.pkgbuild.com` by default).
-   These are Arch's canonical pacman sync files — the same ones every Arch
-   install downloads. No HTML scraping.
-2. Downloads [OSV.dev](https://osv.dev/)'s bulk exports for the
-   **Debian** and **Alpine** ecosystems (one zip each, ~80 MB total) and
-   indexes every record by package name. Ubuntu is skipped by default: its
-   export is ~780 MB and mostly mirrors Debian (`OSV_ECOSYSTEMS` env var
-   overrides the list).
-3. For every **pkgbase** (Arch's source package — the distros above key
-   their records by source package too; `lib32-foo` is looked up as `foo`),
-   takes the records for that name.
-4. **Verifies** every candidate locally against the record's affected
-   ranges (`introduced` / `fixed` / `last_affected`). Distro version noise
-   is normalized away first (`-rN`, Debian/Ubuntu revisions, `+dfsg`,
-   `+repack`, `+debNuM`, `~debNuM`, `+really`, epochs; Arch's inline
-   `1.0beta2` is read as Debian's `1.0~beta2`). Snapshot versions that
-   don't start with a digit (`r12985.5236ecb04`) can't be compared and are
-   skipped. A fix released on
-   Arch's own `major.minor` branch counts even when a distro backported it
-   to an older line. Results:
-   - **affected** — Arch is below a fix: listed.
-   - **uncertain** — in range, but the comparison can't be trusted: Arch
-     sits between fixes on different release lines, Arch builds from a VCS
-     snapshot, the distro's fix is itself a VCS snapshot (`1.4~hg15896`,
-     `6.6+20251231`), or two-part "decimal" versions don't line up
-     (`2.88` vs `2.720`). Listed separately behind a toggle.
-   - **unfixed** — no fix exists anywhere yet: listed separately (hidden
-     behind a toggle on the page).
-   - **fixed** — Arch already has the fix: dropped.
-   - **mismatch** — Arch's version is far below anything the distro ever
-     shipped under that name (e.g. Arch's `keystone` assembler 0.9 vs.
-     Debian's OpenStack `keystone` 22+): treated as a different project,
-     dropped.
+```sh
+curl -fsSO https://yetanotherf0rked.github.io/arch-unofficial-security-tracker/arch-cve-check
+python arch-cve-check
+```
 
-   The same CVE reported by several distros is merged into one entry, and
-   Debian DSA/DLA advisories that only repeat per-CVE records are skipped.
-5. Writes `data/packages.json` and `data/vulns.json`, commits them, and
-   deploys the static site (page + those two files) via GitHub Pages.
+```
+Fixed in the Arch repos — upgrade with `pacman -Syu`  (2 packages, 70 CVEs)
+  Critical openssl 3.5.0-1 -> 3.6.5-1  (fixed in 3.6.5)
+           CVE-2026-84784 CVE-2026-84782 CVE-2026-77696 +62 more
 
-Everything comes from structured feeds — no HTML parsers. A full refresh
-takes well under a minute.
+Vulnerable — upstream has a fix, Arch does not ship it yet  (1 packages, 258 CVEs)
+  Critical chromium 154.0.8037.97-1  (upstream fix: 155.0.8059.39)
+           CVE-2026-106317 CVE-2026-106318 CVE-2026-106320 +255 more
 
-## Data sources
+Coverage: 37 not from the official repos (AUR/local) — not checked; …
+```
 
-| Source | Role | Trusted / active? |
+Options: `-u` only what an upgrade fixes, `-c` list every CVE, `-a` include
+issues Debian rates unimportant, `--json`, `--list-unchecked`, `-q`.
+`pacman -Q | python arch-cve-check -` checks a package list from another
+machine. Exit status is 1 when an installed package is affected (upgradable,
+vulnerable or unfixed), so it can run from a timer or a pacman hook.
+
+**With arch-audit** — the tracker also publishes `all.json` in the official
+tracker's format:
+
+```sh
+arch-audit --source https://yetanotherf0rked.github.io/arch-unofficial-security-tracker/all.json
+```
+
+or permanently in `/etc/arch-audit/settings.toml`:
+
+```toml
+[network]
+source = "https://yetanotherf0rked.github.io/arch-unofficial-security-tracker/all.json"
+```
+
+**In the browser** — paste `pacman -Q` output on the page. It is checked
+in the page; nothing is uploaded.
+
+## What the answers mean
+
+| Answer | Meaning | What to do |
 |---|---|---|
-| `*.db.tar.gz` from Arch mirror | Package list (name + version per repo) | Yes — Arch's own distribution format, served by every mirror |
-| [OSV.dev](https://osv.dev/) bulk exports (`osv-vulnerabilities.storage.googleapis.com/<ecosystem>/all.zip`) | CVE data | Yes — Google-maintained, aggregates GHSA, NVD, Debian Security Tracker, Ubuntu Security Notices, Alpine SecDB and more |
+| Fixed in the Arch repos | Your installed version is below the version that fixes it, and the repos have it. | `pacman -Syu` |
+| Vulnerable | An upstream release fixes it; Arch doesn't ship that release yet. | Wait for the update, or mitigate. |
+| No upstream fix | No upstream release fixes it. Other distros may carry a patch (shown), which Arch could backport. | Mitigate; consider reporting to the Arch package's GitLab issues. |
+| Possibly affected | The version comparison isn't conclusive; the reason is given (Arch newer than anything the distros assessed, Arch rebuilt after another distro patched the same version, snapshot versions, …). | Check the linked records. |
+| Not checked | AUR/local packages, and repo packages without CVE records in any source. | — |
 
-Explicitly **not** used (stale or unmaintained):
+Severity comes from the CVSS 3.x score when a record has one, otherwise from
+Debian's urgency.
 
-- `security.archlinux.org` advisories (halted June 2025)
-- `arch-audit` upstream (depends on the above)
-- `archlinux.org/feeds/news/` (stale per project maintainer)
+## How it works
+
+1. Read the Arch sync databases (`core`, `extra`, `multilib`) from a mirror.
+2. Download OSV.dev's bulk exports for **Debian**, **Alpine**, **PyPI** and
+   **Linux** (the kernel CNA's per-branch data). Arch isn't an OSV ecosystem;
+   these proxy it. Look each pkgbase up by name: the same name, `lib32-`
+   stripped, versioned names built from Arch's version (`python3.14`,
+   `postgresql-18`), `python-foo` → `py3-foo` / PyPI `foo`, and the curated
+   [`aliases.json`](aliases.json) (which also maps the kernels).
+3. Evaluate all records about a CVE together against Arch's version. A
+   distro's own patch (Debian `1.2.3-3` or `+deb13u1`, Alpine `-r2`) is not
+   an upstream fix: it proves upstream 1.2.3 is still vulnerable.
+4. Write every threshold as an Arch version, so clients only need pacman's
+   version ordering, and publish:
+   - `data/advisories.json` — every repo package → pkgbase; per pkgbase the
+     issues affecting the repo version and the issues the repos have fixed,
+     grouped by the Arch version that fixes them;
+   - `all.json` — the same, in the format `arch-audit` reads;
+   - `arch-cve-check` and the page.
+
+[docs/architecture.md](docs/architecture.md) has the design, the matching
+rules, the feed contract, and the review of the first version this replaced.
 
 ## Known limitations
 
-- **Not an OSV ecosystem.** Arch is not natively tracked by OSV. We proxy
-  through Debian / Alpine, which share upstream names with most
-  Arch packages but not all. Packages renamed in Arch (`openssh` vs
-  `openssh-server`, `python-foo` vs `python3-foo`, etc.) may be missed.
-- **Unfixed CVEs can't be version-checked.** When no distro has a fix,
-  every version is considered affected; these are shown separately as
-  "unfixed upstream" and some will be low-priority issues distros chose
-  not to patch.
-- **Name collisions are caught heuristically.** The mismatch check only
-  fires when Arch's major version is less than half of everything the
-  distro knows; a collision between projects with similar version numbers
-  will still slip through.
-- **Backported patches.** Arch sometimes carries upstream patches without
-  a version bump; those CVEs can appear as false positives here. The
-  tracker has no way to know about such patches.
-- **vercmp is simplified.** Handles the common cases (digits, letters,
-  `~` and `rc`/`alpha`/`beta`/`pre` pre-releases, epoch, pkgrel). It does not perfectly mirror pacman's
-  `vercmp` or Debian's `dpkg --compare-versions` in exotic corners.
-- **Non-x86_64.** The fetcher only pulls x86_64 DBs. Other architectures
-  track the same source versions, so the CVE list applies either way.
+- **Coverage.** About 1,700 of 12,400 pkgbases have CVE records in the
+  sources. Packages the proxy distros don't ship, or ship under a name the
+  rules and aliases don't find, are reported as *not checked* — never as
+  safe. Firefox in particular has no source (Debian only ships ESR).
+- **Arch's own patches** are invisible unless a rebuild after the CVE
+  hints at them (then the answer is *possibly affected*).
+- **Version schemes.** Upstream versions are normalized from distro
+  versions; snapshots and unusual schemes end up *possibly affected*
+  rather than guessed.
+- **Thresholds are upstream versions**, not the exact Arch package that
+  first shipped a fix.
 
-Treat the tracker as a best-effort cross-check, not an authoritative
-advisory feed.
+Treat it as a best-effort cross-check, not an authoritative advisory feed.
 
 ## Cross-checking against official sources
 
 `tools/compare_sources.py` (run by the manual **Compare against NVD /
-MITRE / Repology** workflow) audits the tracker's output:
+MITRE / Repology** workflow) builds the feed and audits it:
 
-- **Precision** — for every package/CVE pair reported, checks whether
-  NIST's NVD (CPE version ranges) and MITRE's CVE List
-  ([cvelistV5](https://github.com/CVEProject/cvelistV5), CNA/ADP
-  `affected` ranges) agree that Arch's version is affected.
-- **Recall** — lists Arch packages Repology flags as vulnerable that the
-  tracker doesn't, and vice versa.
+- **Precision** — for every package/CVE pair reported, do NIST's NVD (CPE
+  version ranges) and MITRE's CVE List
+  ([cvelistV5](https://github.com/CVEProject/cvelistV5), CNA/ADP `affected`
+  ranges) agree that Arch's version is affected?
+- **Misses** — for a sample of recent issues the tracker considers fixed in
+  the repos, does an official record still call Arch's version affected?
+- **Recall** — Arch packages Repology flags as vulnerable that the tracker
+  doesn't, and vice versa.
 
-Results land in `reports/compare.md` / `reports/compare.json` and the
-workflow run summary. NVD records are read from the
+Results land in `reports/compare.md` / `reports/compare.json`. NVD records
+are read from the
 [fkie-cad/nvd-json-data-feeds](https://github.com/fkie-cad/nvd-json-data-feeds)
-mirror (synced with NVD every 2 hours) rather than NVD's rate-limited API;
-with an `NVD_API_KEY` repository secret, CVEs not yet in the mirror fall
-back to the API.
+mirror; with an `NVD_API_KEY` repository secret, CVEs not yet in the mirror
+fall back to NVD's API.
 
-## Running locally
+## Development
 
 ```sh
-python update.py
-python -m http.server 8000  # then open http://localhost:8000/
+python update.py                     # build into _site/ (downloads ~175 MB)
+cp site/* _site/ && cp archsec/check.py _site/arch-cve-check
+python -m http.server -d _site 8000  # then open http://localhost:8000/
+
+python -m unittest discover -s tests -t .
+node tests/vercmp.test.mjs
+
+# offline rebuild from saved inputs (--dump-packages saves the package list;
+# osv-zips/ holds Debian.zip, Alpine.zip, PyPI.zip, Linux.zip from OSV's bulk exports)
+python update.py --packages packages.json --osv-dir osv-zips/ --out _site
+python -m archsec.check --feed _site/data/advisories.json
 ```
 
-Python 3.10+ stdlib only. No dependencies, no API keys.
+Python 3.10+, standard library only. No API keys.
 
 ## License
 

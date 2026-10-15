@@ -1,19 +1,21 @@
-name: Update tracker data
+name: Update tracker
 
 on:
   schedule:
-    # Daily at 06:00 UTC. Adjust if you like.
-    - cron: "0 6 * * *"
+    # Every 6 hours: OSV's exports and the Arch repos both move several times a day.
+    - cron: "17 */6 * * *"
   workflow_dispatch:
   push:
     branches: [main]
     paths:
+      - archsec/**
+      - site/**
       - update.py
-      - index.html
+      - aliases.json
       - .github/workflows/update.yml
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -22,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  refresh:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,27 +33,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Refresh package + CVE data
-        run: python update.py
+      - name: Test
+        run: python -m unittest discover -s tests -t .
 
-      - name: Commit updated data
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/packages.json data/vulns.json
-          if git diff --cached --quiet; then
-            echo "No data changes."
-          else
-            git commit -m "data: refresh $(date -u +%Y-%m-%dT%H:%MZ)"
-            git pull --rebase origin "$GITHUB_REF_NAME"
-            git push origin "HEAD:$GITHUB_REF_NAME"
-          fi
+      # Writes _site/data/advisories.json and _site/all.json. Generated data is
+      # published, not committed: the feed is rebuilt from its sources each run.
+      - name: Build feed
+        run: python update.py --out _site
 
       - name: Stage site
         run: |
-          mkdir -p _site/data
-          cp index.html _site/
-          cp data/packages.json data/vulns.json _site/data/
+          cp site/* _site/
+          cp archsec/check.py _site/arch-cve-check
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -59,7 +52,7 @@ jobs:
           path: _site
 
   deploy:
-    needs: refresh
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages

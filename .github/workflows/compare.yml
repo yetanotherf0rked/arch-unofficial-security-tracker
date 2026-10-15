@@ -17,11 +17,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Build feed
+        run: python update.py --out _site
+
       - name: Compare sources
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          python tools/compare_sources.py
+          python tools/compare_sources.py _site/data/advisories.json
           cat reports/compare.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit report

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cross-check the tracker's output (data/vulns.json) against independent sources.
+Cross-check the tracker's feed (data/advisories.json) against independent sources.
 
 Precision — for every package/CVE pair the tracker reports, ask:
   * NIST NVD    (CVE API 2.0 records, read from the fkie-cad/nvd-json-data-feeds
@@ -8,6 +8,8 @@ Precision — for every package/CVE pair the tracker reports, ask:
                 Arch's version?
   * MITRE CVE   (CVEProject/cvelistV5, the official CVE List in JSON 5):
                 do the CNA's / ADP's `affected` version ranges include it?
+Misses — for a sample of recent issues the tracker considers fixed in the
+repos, do NVD / MITRE say Arch's version is still affected?
 Recall — which Arch packages does Repology flag as vulnerable that the
 tracker doesn't list, and vice versa?
 
@@ -17,6 +19,7 @@ Env:
   NVD_API_KEY   optional; lets CVEs not yet in the mirror fall back to NVD's
                 own API (without a key that API allows 5 requests / 30 s)
   SKIP_NVD / SKIP_MITRE / SKIP_REPOLOGY   set to 1 to skip a source
+  FIXED_SAMPLE  how many recent "fixed" pairs to check for misses (default 1500)
 """
 
 from __future__ import annotations
@@ -35,7 +38,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from update import upstream_version, vercmp  # noqa: E402
+from archsec.versions import split_arch, upstream_version, vercmp  # noqa: E402
 
 REPORTS = ROOT / "reports"
 UA = "arch-unofficial-security-tracker/compare (+https://github.com/yetanotherf0rked/arch-unofficial-security-tracker)"
@@ -48,6 +51,8 @@ MITRE_URL = "https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/{y
 REPOLOGY_URL = "https://repology.org/api/v1/projects/{bound}?inrepo=arch&vulnerable=1"
 
 NVD_KEY = os.environ.get("NVD_API_KEY", "")
+FIXED_SAMPLE = int(os.environ.get("FIXED_SAMPLE", "1500"))
+KINDS = ("vulnerable", "unfixed", "uncertain", "fixed")
 
 # Vendors whose CPE / product entries describe a distro build, not upstream.
 DISTRO_VENDORS = {
@@ -307,23 +312,41 @@ def fetch_repology() -> tuple[dict[str, dict[str, Any]], str]:
 
 # ---------------------------------------------------------------------------
 
-def main() -> int:
-    data = json.loads((ROOT / "data" / "vulns.json").read_text())
-    if not data.get("affected"):
-        print("data/vulns.json has no entries — run update.py first", file=sys.stderr)
-        return 1
-
+def collect_pairs(feed: dict[str, Any]) -> list[dict[str, Any]]:
+    """Package/CVE pairs to check: every open issue, plus the most recent fixed ones."""
     pairs: list[dict[str, Any]] = []
-    for a in data["affected"]:
-        for kind in ("vulns", "uncertain", "unfixed"):
-            for v in a.get(kind, []) or []:
-                if v.get("cve"):
-                    pairs.append({
-                        "package": a["name"], "repo": a["repo"], "version": a["version"],
-                        "upstream_version": a["upstream_version"], "cve": v["cve"],
-                        "kind": {"vulns": "fixable"}.get(kind, kind),
-                        "fixed_versions": v.get("fixed_versions", []),
-                    })
+    fixed: list[dict[str, Any]] = []
+    for name, b in feed["pkgbases"].items():
+        up = upstream_version(split_arch(b["version"])[1])
+        common = {"package": name, "repo": b["repo"], "version": b["version"], "upstream_version": up}
+        for i in b.get("issues", []):
+            if i["id"].startswith("CVE-"):
+                pairs.append({**common, "cve": i["id"], "kind": i["status"], "reason": i.get("reason", ""),
+                              "fixed_versions": i.get("fix", [])})
+        for g in b.get("fixed", []):
+            for cid in g["ids"]:
+                if cid.startswith("CVE-"):
+                    fixed.append({**common, "cve": cid, "kind": "fixed", "reason": "",
+                                  "fixed_versions": [g["fixed"]], "published": g.get("published", "")})
+    # Most recent first, at most 40 per package so the kernel doesn't fill the sample.
+    fixed.sort(key=lambda p: p["published"], reverse=True)
+    per_pkg: dict[str, int] = {}
+    sample = []
+    for p in fixed:
+        if per_pkg.get(p["package"], 0) < 40 and len(sample) < FIXED_SAMPLE:
+            per_pkg[p["package"]] = per_pkg.get(p["package"], 0) + 1
+            sample.append(p)
+    return pairs + sample
+
+
+def main() -> int:
+    feed_path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "_site" / "data" / "advisories.json"
+    if not feed_path.exists():
+        print(f"{feed_path} not found — run `python update.py` first", file=sys.stderr)
+        return 1
+    data = json.loads(feed_path.read_text())
+
+    pairs = collect_pairs(data)
     cve_ids = sorted({p["cve"] for p in pairs})
     print(f"{len(pairs)} package/CVE pairs, {len(cve_ids)} unique CVEs", flush=True)
 
@@ -355,8 +378,9 @@ def main() -> int:
             repology_note = f"failed: {e}"
             print(f"  repology: {e}", file=sys.stderr)
 
-    ours = {a["name"] for a in data["affected"]}
-    ours_fixable = {a["name"] for a in data["affected"] if a.get("vulns")}
+    open_status = ("vulnerable", "unfixed")
+    ours = {n for n, b in data["pkgbases"].items() if any(i["status"] in open_status and not i.get("minor") for i in b["issues"])}
+    ours_fixable = {n for n, b in data["pkgbases"].items() if any(i["status"] == "vulnerable" for i in b["issues"])}
     rep_names = set(repology)
 
     def tally(source: str, kind: str) -> dict[str, int]:
@@ -367,16 +391,16 @@ def main() -> int:
                 t[k] = t.get(k, 0) + 1
         return dict(sorted(t.items()))
 
+    def says(p: dict, verdict: str) -> bool:
+        return p.get("nvd", {}).get("verdict") == verdict or p.get("mitre", {}).get("verdict") == verdict
+
     report = {
         "generated_at": int(time.time()),
         "tracker_generated_at": data.get("generated_at"),
         "pairs": len(pairs),
         "unique_cves": len(cve_ids),
         "nvd_checked": len(nvd_ids),
-        "precision": {
-            src: {kind: tally(src, kind) for kind in ("fixable", "uncertain", "unfixed")}
-            for src in ("nvd", "mitre")
-        },
+        "precision": {src: {kind: tally(src, kind) for kind in KINDS} for src in ("nvd", "mitre")},
         "repology": {
             "note": repology_note,
             "flagged": len(rep_names),
@@ -384,12 +408,8 @@ def main() -> int:
             "repology_only": sorted(rep_names - ours),
             "tracker_only": sorted(ours - rep_names),
         },
-        "disagreements": [
-            p for p in pairs
-            if p["kind"] == "fixable"
-            and (p.get("nvd", {}).get("verdict") == "not_affected"
-                 or p.get("mitre", {}).get("verdict") == "not_affected")
-        ],
+        "disagreements": [p for p in pairs if p["kind"] == "vulnerable" and says(p, "not_affected")],
+        "possible_misses": [p for p in pairs if p["kind"] == "fixed" and says(p, "affected")],
         "detail": pairs,
     }
     REPORTS.mkdir(exist_ok=True)
@@ -408,7 +428,9 @@ def render_md(r: dict[str, Any], ours_fixable: set[str], repology: dict[str, dic
         aff, notaff = t.get("affected", 0), t.get("not_affected", 0)
         other = n - aff - notaff
         decided = aff + notaff
-        agree = f"{100 * aff / decided:.0f}%" if decided else "–"
+        # For "fixed" pairs the tracker claims Arch is *not* affected.
+        agreeing = notaff if kind == "fixed" else aff
+        agree = f"{100 * agreeing / decided:.0f}%" if decided else "–"
         return f"| {src.upper()} | {kind} | {aff} | {notaff} | {other} | {agree} |"
 
     rep = r["repology"]
@@ -421,10 +443,12 @@ def render_md(r: dict[str, Any], ours_fixable: set[str], repology: dict[str, dic
         "",
         "## Precision: does the official record agree Arch's version is affected?",
         "",
-        "| Source | Tracker says | Agrees (affected) | Disagrees (not affected) | No version data / missing | Agreement where decidable |",
+        "| Source | Tracker says | Source: affected | Source: not affected | No version data / missing | Agreement where decidable |",
         "|---|---|---|---|---|---|",
-        row("nvd", "fixable"), row("nvd", "uncertain"), row("nvd", "unfixed"),
-        row("mitre", "fixable"), row("mitre", "uncertain"), row("mitre", "unfixed"),
+        *(row(src, kind) for src in ("nvd", "mitre") for kind in KINDS),
+        "",
+        "\"fixed\" rows are a sample of recent issues the tracker considers fixed in the repos; "
+        "agreement there means the source also says Arch's version is not affected.",
         "",
         "\"No version data\" means the record has no usable ranges for this product "
         "(NVD awaiting analysis, CNA gave only git commits, etc.).",
@@ -435,7 +459,7 @@ def render_md(r: dict[str, Any], ours_fixable: set[str], repology: dict[str, dic
         f"- Flagged by both: **{len(rep['both'])}**",
         f"- Repology only: **{len(rep['repology_only'])}**",
         f"- Tracker only: **{len(rep['tracker_only'])}** "
-        f"({len(set(rep['tracker_only']) & ours_fixable)} with a fixable CVE)",
+        f"({len(set(rep['tracker_only']) & ours_fixable)} vulnerable with an upstream fix)",
         "",
     ]
     if rep["repology_only"]:
@@ -446,22 +470,33 @@ def render_md(r: dict[str, Any], ours_fixable: set[str], repology: dict[str, dic
         lines += ["<details><summary>Tracker only</summary>", ""]
         lines += [f"- `{n}`" for n in rep["tracker_only"][:300]]
         lines += ["", "</details>", ""]
+    def cell(p: dict, src: str) -> str:
+        v = p.get(src)
+        if not v:
+            return "–"
+        extra = f" ({', '.join(v.get('products', [])[:2])})" if v.get("products") else ""
+        return v["verdict"] + extra
+
     lines += [
-        "## Disagreements on fixable CVEs",
+        "## Possible misses: tracker says fixed, NVD or MITRE says affected",
+        "",
+        "| Package | Arch | CVE | Tracker threshold | NVD | MITRE |",
+        "|---|---|---|---|---|---|",
+    ]
+    for p in r["possible_misses"][:200]:
+        lines.append(f"| {p['package']} | {p['upstream_version']} | {p['cve']} | "
+                     f"{', '.join(p['fixed_versions'][:2])} | {cell(p, 'nvd')} | {cell(p, 'mitre')} |")
+    lines += [
+        "",
+        "## Disagreements on vulnerable CVEs",
         "",
         "| Package | Arch | CVE | Tracker fix | NVD | MITRE |",
         "|---|---|---|---|---|---|",
     ]
     for p in r["disagreements"][:200]:
-        def cell(src: str) -> str:
-            v = p.get(src)
-            if not v:
-                return "–"
-            extra = f" ({', '.join(v.get('products', [])[:2])})" if v.get("products") else ""
-            return v["verdict"] + extra
         lines.append(
             f"| {p['package']} | {p['upstream_version']} | {p['cve']} | "
-            f"{', '.join(p['fixed_versions'][:2])} | {cell('nvd')} | {cell('mitre')} |"
+            f"{', '.join(p['fixed_versions'][:2])} | {cell(p, 'nvd')} | {cell(p, 'mitre')} |"
         )
     if len(r["disagreements"]) > 200:
         lines.append(f"\n…and {len(r['disagreements']) - 200} more in compare.json")
