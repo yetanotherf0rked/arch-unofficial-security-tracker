@@ -1,19 +1,23 @@
 {
-  "generated_at": 1792036125,
+  "generated_at": 1792036809,
   "sources": {
     "packages": "https://geo.mirror.pkgbuild.com/<repo>/os/x86_64/<repo>.db.tar.gz (repos: core, extra, multilib)",
     "vulnerabilities": "OSV.dev \u2014 proxied via Debian, Alpine"
   },
-  "limitations": "Arch is not an OSV ecosystem. CVEs come from the Debian / Alpine OSV data, matched by Arch pkgbase name, then verified locally against the affected ranges in each record. CVEs with no fix anywhere yet are listed separately as unfixed. False negatives possible when Arch names a package differently from those distros; false positives possible when Arch backports a patch without a version bump.",
+  "limitations": "Arch is not an OSV ecosystem. CVEs come from the Debian / Alpine OSV data, matched by Arch pkgbase name, then verified locally against the affected ranges in each record. CVEs with no fix anywhere yet are listed separately as unfixed, and matches whose version comparison can't be trusted (snapshots, packages between release lines) as uncertain. False negatives possible when Arch names a package differently from those distros; false positives possible when Arch backports a patch without a version bump.",
   "stats": {
-    "affected": 372,
+    "affected": 336,
+    "uncertain": 31,
     "unfixed": 2142,
-    "fixed": 54150,
-    "mismatch": 73,
-    "unknown": 5
+    "fixed": 48996,
+    "mismatch": 62,
+    "unknown": 5,
+    "duplicate_advisory": 5170
   },
-  "affected_count": 28,
-  "total_vulns": 368,
+  "affected_count": 17,
+  "total_vulns": 334,
+  "uncertain_count": 12,
+  "total_uncertain": 29,
   "unfixed_count": 406,
   "total_unfixed": 2064,
   "affected": [
@@ -4671,6 +4675,7 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-110172",
@@ -5618,6 +5623,7 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-55194",
@@ -5663,54 +5669,6 @@
       ],
       "vulns": [
         {
-          "id": "DSA-3940-1",
-          "cve": "",
-          "summary": "cvs - security update",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:23:19.810254Z",
-          "published": "2017-08-13T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "1.12.13+real"
-          ],
-          "sources": [
-            "DSA-3940-1"
-          ]
-        },
-        {
-          "id": "DSA-2407-1",
-          "cve": "",
-          "summary": "cvs - heap overflow",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:18:13.311487Z",
-          "published": "2012-02-09T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "1.12.13"
-          ],
-          "sources": [
-            "DSA-2407-1"
-          ]
-        },
-        {
-          "id": "DLA-1056-1",
-          "cve": "",
-          "summary": "cvs - security update",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:01:05.143321Z",
-          "published": "2017-08-13T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "1.12.13+real"
-          ],
-          "sources": [
-            "DLA-1056-1"
-          ]
-        },
-        {
           "id": "DEBIAN-CVE-2017-12836",
           "cve": "CVE-2017-12836",
           "summary": "CVS 1.12.x, when configured to use SSH for remote repositories, might allow remote attackers to execute arbitrary code via a repository URL with a crafted hostname, as demonstrated by \"-oProxyCommand=id;localhost:/bar.\"",
@@ -5722,7 +5680,7 @@
             "https://security-tracker.debian.org/tracker/CVE-2017-12836"
           ],
           "fixed_versions": [
-            "1.12.13+real",
+            "1.12.13",
             "1.12.12"
           ],
           "sources": [
@@ -5742,7 +5700,7 @@
             "https://security-tracker.debian.org/tracker/CVE-2012-0804"
           ],
           "fixed_versions": [
-            "1.12.13+real",
+            "1.12.13",
             "1.12.12"
           ],
           "sources": [
@@ -5985,342 +5943,8 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": []
-    },
-    {
-      "name": "graphicsmagick",
-      "version": "1.3.49-2",
-      "upstream_version": "1.3.49",
-      "repo": "extra",
-      "packages": [
-        "graphicsmagick"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2019-7397",
-          "cve": "CVE-2019-7397",
-          "summary": "In ImageMagick before 7.0.8-25 and GraphicsMagick through 1.3.31, several memory leaks exist in WritePDFImage in coders/pdf.c.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:03:23.886470238Z",
-          "published": "2019-02-05T00:29:00.510Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-7397"
-          ],
-          "fixed_versions": [
-            "1.4~hg15896"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-7397"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-19951",
-          "cve": "CVE-2019-19951",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190423 Q8, there is a heap-based buffer overflow in the function ImportRLEPixels of coders/miff.c.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:00:31.969578179Z",
-          "published": "2019-12-24T01:15:11.450Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-19951"
-          ],
-          "fixed_versions": [
-            "1.4~hg16039"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-19951"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-19950",
-          "cve": "CVE-2019-19950",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190403 Q8, there is a use-after-free in ThrowException and ThrowLoggedException of magick/error.c.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:02:14.200087524Z",
-          "published": "2019-12-24T01:15:11.387Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-19950"
-          ],
-          "fixed_versions": [
-            "1.4~hg16039"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-19950"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-12921",
-          "cve": "CVE-2019-12921",
-          "summary": "In GraphicsMagick before 1.3.32, the text filename component allows remote attackers to read arbitrary files via a crafted image because of TranslateTextEx for SVG.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
-          "aliases": [],
-          "modified": "2026-09-21T07:02:17.107837007Z",
-          "published": "2020-03-18T19:15:16.043Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-12921"
-          ],
-          "fixed_versions": [
-            "1.4~hg16039"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-12921"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11506",
-          "cve": "CVE-2019-11506",
-          "summary": "In GraphicsMagick from version 1.3.30 to 1.4 snapshot-20190403 Q8, there is a heap-based buffer overflow in the function WriteMATLABImage of coders/mat.c, which allows an attacker to cause a denial of service or possibly have unspecified other impact via a crafted image file. This is related to Expo",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:01:43.590860693Z",
-          "published": "2019-04-24T21:29:01.070Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11506"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11506"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11505",
-          "cve": "CVE-2019-11505",
-          "summary": "In GraphicsMagick from version 1.3.8 to 1.4 snapshot-20190403 Q8, there is a heap-based buffer overflow in the function WritePDBImage of coders/pdb.c, which allows an attacker to cause a denial of service or possibly have unspecified other impact via a crafted image file. This is related to MagickBi",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:01:43.979044276Z",
-          "published": "2019-04-24T21:29:00.993Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11505"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11505"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11474",
-          "cve": "CVE-2019-11474",
-          "summary": "coders/xwd.c in GraphicsMagick 1.3.31 allows attackers to cause a denial of service (floating-point exception and application crash) by crafting an XWD image file, a different vulnerability than CVE-2019-11008 and CVE-2019-11009.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:00:22.950838709Z",
-          "published": "2019-04-23T14:29:01.057Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11474"
-          ],
-          "fixed_versions": [
-            "1.4~hg15976"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11474"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11473",
-          "cve": "CVE-2019-11473",
-          "summary": "coders/xwd.c in GraphicsMagick 1.3.31 allows attackers to cause a denial of service (out-of-bounds read and application crash) by crafting an XWD image file, a different vulnerability than CVE-2019-11008 and CVE-2019-11009.",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:00:22.851654720Z",
-          "published": "2019-04-23T14:29:00.930Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11473"
-          ],
-          "fixed_versions": [
-            "1.4~hg15976"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11473"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11010",
-          "cve": "CVE-2019-11010",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a memory leak in the function ReadMPCImage of coders/mpc.c, which allows attackers to cause a denial of service via a crafted image file.",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:01:58.659724377Z",
-          "published": "2019-04-08T19:29:05.370Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11010"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11010"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11009",
-          "cve": "CVE-2019-11009",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer over-read in the function ReadXWDImage of coders/xwd.c, which allows attackers to cause a denial of service or information disclosure via a crafted image file.",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:01:58.243563912Z",
-          "published": "2019-04-08T19:29:05.323Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11009"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11009"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11008",
-          "cve": "CVE-2019-11008",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer overflow in the function WriteXWDImage of coders/xwd.c, which allows remote attackers to cause a denial of service (application crash) or possibly have unspecified other impact via a crafted image file.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:00:36.829507487Z",
-          "published": "2019-04-08T19:29:05.277Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11008"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11008"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11007",
-          "cve": "CVE-2019-11007",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer over-read in the ReadMNGImage function of coders/png.c, which allows attackers to cause a denial of service or information disclosure via an image colormap.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:00:36.870780678Z",
-          "published": "2019-04-08T19:29:05.150Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11007"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11007"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11006",
-          "cve": "CVE-2019-11006",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer over-read in the function ReadMIFFImage of coders/miff.c, which allows attackers to cause a denial of service or information disclosure via an RLE packet.",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:01:58.360710093Z",
-          "published": "2019-04-08T19:29:05.087Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11006"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11006"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2019-11005",
-          "cve": "CVE-2019-11005",
-          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a stack-based buffer overflow in the function SVGStartElement of coders/svg.c, which allows remote attackers to cause a denial of service (application crash) or possibly have unspecified other impact via a quoted font family value.",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-21T07:01:58.628542095Z",
-          "published": "2019-04-08T19:29:05.027Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2019-11005"
-          ],
-          "fixed_versions": [
-            "1.4~hg15968"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2019-11005"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2018-20189",
-          "cve": "CVE-2018-20189",
-          "summary": "In GraphicsMagick 1.3.31, the ReadDIBImage function of coders/dib.c has a vulnerability allowing a crash and denial of service via a dib file that is crafted to appear with direct pixel values and also colormapping (which is not available beyond 8-bits/sample), and therefore lacks indexes initializa",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:03:57.995648635Z",
-          "published": "2018-12-17T20:29:00.247Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2018-20189"
-          ],
-          "fixed_versions": [
-            "1.4~hg15873"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2018-20189"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2018-20185",
-          "cve": "CVE-2018-20185",
-          "summary": "In GraphicsMagick 1.4 snapshot-20181209 Q8 on 32-bit platforms, there is a heap-based buffer over-read in the ReadBMPImage function of bmp.c, which allows attackers to cause a denial of service via a crafted bmp image file. This only affects GraphicsMagick installations with customized BMP limits.",
-          "severity": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:03:57.998643274Z",
-          "published": "2018-12-17T19:29:03.720Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2018-20185"
-          ],
-          "fixed_versions": [
-            "1.4~hg15880"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2018-20185"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2018-20184",
-          "cve": "CVE-2018-20184",
-          "summary": "In GraphicsMagick 1.4 snapshot-20181209 Q8, there is a heap-based buffer overflow in the WriteTGAImage function of tga.c, which allows attackers to cause a denial of service via a crafted image file, because the number of rows or columns can exceed the pixel-dimension restrictions of the TGA specifi",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:03:57.953221257Z",
-          "published": "2018-12-17T19:29:03.173Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2018-20184"
-          ],
-          "fixed_versions": [
-            "1.4~hg15873"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2018-20184"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2017-13736",
-          "cve": "CVE-2017-13736",
-          "summary": "There are lots of memory leaks in the GMCommand function in magick/command.c in GraphicsMagick 1.3.26 that will lead to a remote denial of service attack.",
-          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:02:40.512520921Z",
-          "published": "2017-08-29T06:29:00.577Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2017-13736"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2017-13736"
-          ]
-        }
-      ]
     },
     {
       "name": "busybox",
@@ -6512,6 +6136,26 @@
           ]
         },
         {
+          "id": "DEBIAN-CVE-2023-39810",
+          "cve": "CVE-2023-39810",
+          "summary": "An issue in the CPIO command of Busybox v1.33.2 allows attackers to execute a directory traversal.",
+          "severity": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-15T09:02:19.129453165Z",
+          "published": "2023-08-28T19:15:07.893Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2023-39810"
+          ],
+          "fixed_versions": [
+            "1.37.0"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2023-39810"
+          ]
+        }
+      ],
+      "uncertain": [
+        {
           "id": "DEBIAN-CVE-2023-42365",
           "cve": "CVE-2023-42365",
           "summary": "A use-after-free vulnerability was discovered in BusyBox v.1.36.1 via a crafted awk pattern in the awk.c copyvar function.",
@@ -6566,24 +6210,6 @@
           ],
           "sources": [
             "DEBIAN-CVE-2023-42363"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2023-39810",
-          "cve": "CVE-2023-39810",
-          "summary": "An issue in the CPIO command of Busybox v1.33.2 allows attackers to execute a directory traversal.",
-          "severity": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-15T09:02:19.129453165Z",
-          "published": "2023-08-28T19:15:07.893Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2023-39810"
-          ],
-          "fixed_versions": [
-            "1.37.0"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2023-39810"
           ]
         },
         {
@@ -7058,6 +6684,7 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-96990",
@@ -8325,6 +7952,7 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-79590",
@@ -8408,6 +8036,7 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": []
     },
     {
@@ -8474,73 +8103,8 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": []
-    },
-    {
-      "name": "lib32-lcms2",
-      "version": "2.17-1",
-      "upstream_version": "2.17",
-      "repo": "multilib",
-      "packages": [
-        "lib32-lcms2"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2026-42798",
-          "cve": "CVE-2026-42798",
-          "summary": "Little CMS (lcms2) 2.16 through 2.18 before 2.19 has an integer overflow in ParseCube in cmscgats.c.",
-          "severity": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:L",
-          "aliases": [],
-          "modified": "2026-10-01T03:03:22.976139229Z",
-          "published": "2026-04-30T07:16:37.423Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-42798"
-          ],
-          "fixed_versions": [
-            "2.16",
-            "2.19.1"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2026-42798"
-          ]
-        },
-        {
-          "id": "ALPINE-CVE-2026-41254",
-          "cve": "CVE-2026-41254",
-          "summary": "Little CMS (lcms2) through 2.18 has an integer overflow in CubeSize in cmslut.c because the overflow check is performed after the multiplication.",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-10-01T02:17:49.283414077Z",
-          "published": "2026-04-18T07:16:10.807Z",
-          "references": [
-            "https://security.alpinelinux.org/vuln/CVE-2026-41254"
-          ],
-          "fixed_versions": [
-            "2.19"
-          ],
-          "sources": [
-            "ALPINE-CVE-2026-41254"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2025-29070",
-          "cve": "CVE-2025-29070",
-          "summary": "A heap buffer overflow vulnerability has been identified in thesmooth2() in cmsgamma.c in lcms2-2.16 which allows a remote attacker to cause a denial of service. NOTE: the Supplier disputes this because \"this is not exploitable as this function is never called on normal color management, is there on",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:05:45.395904910Z",
-          "published": "2025-04-01T21:15:44.023Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2025-29070"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2025-29070"
-          ]
-        }
-      ]
     },
     {
       "name": "gitsign",
@@ -8588,52 +8152,7 @@
           ]
         }
       ],
-      "unfixed": []
-    },
-    {
-      "name": "razor",
-      "version": "2.88-1",
-      "upstream_version": "2.88",
-      "repo": "extra",
-      "packages": [
-        "razor"
-      ],
-      "vulns": [
-        {
-          "id": "DSA-738-1",
-          "cve": "",
-          "summary": "razor - email header parsing error",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T02:10:28.418075Z",
-          "published": "2005-07-05T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "2.670"
-          ],
-          "sources": [
-            "DSA-738-1"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2005-2024",
-          "cve": "CVE-2005-2024",
-          "summary": "Vipul Razor Agents (razor-agents) before 2.70 allows remote attackers to cause a denial of service via (1) certain \"unusual HTML messages\" or (2) \"certain malformed headers\" such as Content-Type.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-30T06:47:23.202921847Z",
-          "published": "2005-06-17T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2005-2024"
-          ],
-          "fixed_versions": [
-            "2.720"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2005-2024"
-          ]
-        }
-      ],
+      "uncertain": [],
       "unfixed": []
     },
     {
@@ -8682,7 +8201,667 @@
           ]
         }
       ],
+      "uncertain": [],
       "unfixed": []
+    },
+    {
+      "name": "lib32-lcms2",
+      "version": "2.17-1",
+      "upstream_version": "2.17",
+      "repo": "multilib",
+      "packages": [
+        "lib32-lcms2"
+      ],
+      "vulns": [
+        {
+          "id": "ALPINE-CVE-2026-41254",
+          "cve": "CVE-2026-41254",
+          "summary": "Little CMS (lcms2) through 2.18 has an integer overflow in CubeSize in cmslut.c because the overflow check is performed after the multiplication.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-10-01T02:17:49.283414077Z",
+          "published": "2026-04-18T07:16:10.807Z",
+          "references": [
+            "https://security.alpinelinux.org/vuln/CVE-2026-41254"
+          ],
+          "fixed_versions": [
+            "2.19"
+          ],
+          "sources": [
+            "ALPINE-CVE-2026-41254"
+          ]
+        }
+      ],
+      "uncertain": [
+        {
+          "id": "DEBIAN-CVE-2026-42798",
+          "cve": "CVE-2026-42798",
+          "summary": "Little CMS (lcms2) 2.16 through 2.18 before 2.19 has an integer overflow in ParseCube in cmscgats.c.",
+          "severity": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:L",
+          "aliases": [],
+          "modified": "2026-10-01T03:03:22.976139229Z",
+          "published": "2026-04-30T07:16:37.423Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-42798"
+          ],
+          "fixed_versions": [
+            "2.16",
+            "2.19.1"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2026-42798"
+          ]
+        }
+      ],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2025-29070",
+          "cve": "CVE-2025-29070",
+          "summary": "A heap buffer overflow vulnerability has been identified in thesmooth2() in cmsgamma.c in lcms2-2.16 which allows a remote attacker to cause a denial of service. NOTE: the Supplier disputes this because \"this is not exploitable as this function is never called on normal color management, is there on",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:05:45.395904910Z",
+          "published": "2025-04-01T21:15:44.023Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2025-29070"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2025-29070"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cimg",
+      "version": "3.7.6-1",
+      "upstream_version": "3.7.6",
+      "repo": "extra",
+      "packages": [
+        "cimg"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2026-47667",
+          "cve": "CVE-2026-47667",
+          "summary": "CImg Library is a C++ library for image processing. Prior to version 4.0.0 in `_load_analyze()`, the header_size field is read as an `unsigned int` from the first 4 bytes of an Analyze/NIfTI file and passed directly to `new unsigned char[header_size]` without being bounded against the actual file si",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-10-01T03:03:07.126471350Z",
+          "published": "2026-07-21T20:17:01.323Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-47667"
+          ],
+          "fixed_versions": [
+            "4.0.4"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2026-47667"
+          ]
+        }
+      ],
+      "uncertain": [],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2018-7587",
+          "cve": "CVE-2018-7587",
+          "summary": "An issue was discovered in CImg v.220. DoS occurs when loading a crafted bmp image that triggers an allocation failure in load_bmp in CImg.h.",
+          "severity": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:04:00.782776472Z",
+          "published": "2018-03-01T22:29:00.393Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2018-7587"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2018-7587"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mxml",
+      "version": "3.3.1-2",
+      "upstream_version": "3.3.1",
+      "repo": "extra",
+      "packages": [
+        "mxml",
+        "mxml-docs"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2026-88385",
+          "cve": "CVE-2026-88385",
+          "summary": "Mini-XML 4.0.5 contains a memory leak vulnerability in mxml_load_data() during malformed XML parsing. Specially crafted XML input can cause text nodes allocated by mxmlNewText() to become unlinked before a parse error transfers control to the cleanup path. These orphaned nodes are not released, resu",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-10-07T10:00:46.837033190Z",
+          "published": "2026-09-24T17:17:08.023Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-88385"
+          ],
+          "fixed_versions": [
+            "4.0.6"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2026-88385"
+          ]
+        }
+      ],
+      "uncertain": [],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2018-20005",
+          "cve": "CVE-2018-20005",
+          "summary": "An issue has been found in Mini-XML (aka mxml) 2.12. It is a use-after-free in mxmlWalkNext in mxml-search.c, as demonstrated by mxmldoc.",
+          "severity": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:03:57.805014312Z",
+          "published": "2018-12-10T06:29:00.647Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2018-20005"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2018-20005"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rubygems",
+      "version": "3.6.9-1",
+      "upstream_version": "3.6.9",
+      "repo": "extra",
+      "packages": [
+        "rubygems"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2026-82455",
+          "cve": "CVE-2026-82455",
+          "summary": "RubyGems fails to re-validate path containment after filesystem symlink resolution during gem extraction. When a pre-existing symlink inside the destination directory points outside the extraction root, extracted files that appear to be written under the destination directory can instead be written ",
+          "severity": "CVSS:4.0/AV:L/AC:L/AT:N/PR:N/UI:P/VC:N/VI:H/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X",
+          "aliases": [],
+          "modified": "2026-09-08T20:00:07.809562991Z",
+          "published": "2026-08-29T14:16:38.623Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-82455"
+          ],
+          "fixed_versions": [
+            "4.0.15"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2026-82455"
+          ]
+        }
+      ],
+      "uncertain": [],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2025-61594",
+          "cve": "CVE-2025-61594",
+          "summary": "URI is a module providing classes to handle Uniform Resource Identifiers. In versions 0.12.4 and earlier (bundled in Ruby 3.2 series) 0.13.2 and earlier (bundled in Ruby 3.3 series), 1.0.3 and earlier (bundled in Ruby 3.4 series), when using the + operator to combine URIs, sensitive information like",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+          "aliases": [],
+          "modified": "2026-09-01T20:04:35.838652817Z",
+          "published": "2025-12-30T21:15:43.893Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2025-61594"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2025-61594"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tftp-hpa",
+      "version": "5.2-11",
+      "upstream_version": "5.2",
+      "repo": "extra",
+      "packages": [
+        "tftp-hpa"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2026-85234",
+          "cve": "CVE-2026-85234",
+          "summary": "A flaw was found in tftp-hpa. When the `in.tftpd` remap engine processes an inverse remap rule that also aborts with a non-empty custom error message, it can pass invalid match offsets to the `genmatchstring()` function. This leads to out-of-bounds read/write operations. A remote, unauthenticated at",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-10-14T10:00:12.520299821Z",
+          "published": "2026-09-15T18:19:34.927Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-85234"
+          ],
+          "fixed_versions": [
+            "5.3+20251116"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2026-85234"
+          ]
+        }
+      ],
+      "uncertain": [],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2026-106026",
+          "cve": "CVE-2026-106026",
+          "summary": "tftp-hpa 5.4 before 6.0 contains an out-of-bounds read vulnerability in rewrite_string() in tftpd/remap.c that walks heap memory during jump label searches. Unauthenticated remote attackers can send read or write requests whose filename matches a remap jump rule to crash the forked in.tftpd request ",
+          "severity": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X",
+          "aliases": [],
+          "modified": "2026-10-07T05:00:08.053691583Z",
+          "published": "2026-10-06T14:17:42.083Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-106026"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2026-106026"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "amavisd-new",
+      "version": "2.12.3-1",
+      "upstream_version": "2.12.3",
+      "repo": "extra",
+      "packages": [
+        "amavisd-new"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2024-28054",
+          "cve": "CVE-2024-28054",
+          "summary": "Amavis before 2.12.3 and 2.13.x before 2.13.1, in part because of its use of MIME-tools, has an Interpretation Conflict (relative to some mail user agents) when there are multiple boundary parameters in a MIME email message. Consequently, there can be an incorrect check for banned files or malware.",
+          "severity": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
+          "aliases": [],
+          "modified": "2026-09-15T09:03:01.110457036Z",
+          "published": "2024-03-18T17:15:07.360Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2024-28054"
+          ],
+          "fixed_versions": [
+            "2.13.0"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2024-28054"
+          ]
+        }
+      ],
+      "uncertain": [],
+      "unfixed": []
+    },
+    {
+      "name": "ckermit",
+      "version": "9.0.302-12",
+      "upstream_version": "9.0.302",
+      "repo": "extra",
+      "packages": [
+        "ckermit"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2025-68920",
+          "cve": "CVE-2025-68920",
+          "summary": "C-Kermit (aka ckermit) through 10.0 Beta.12 (aka 416-beta12) before 244644d allows a remote Kermit system to overwrite files on the local system, or retrieve arbitrary files from the local system.",
+          "severity": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:L",
+          "aliases": [],
+          "modified": "2026-10-08T10:00:25.628081567Z",
+          "published": "2025-12-24T22:15:43.550Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2025-68920"
+          ],
+          "fixed_versions": [
+            "416~beta12"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2025-68920"
+          ]
+        }
+      ],
+      "uncertain": [],
+      "unfixed": []
+    },
+    {
+      "name": "graphicsmagick",
+      "version": "1.3.49-2",
+      "upstream_version": "1.3.49",
+      "repo": "extra",
+      "packages": [
+        "graphicsmagick"
+      ],
+      "vulns": [],
+      "uncertain": [
+        {
+          "id": "DEBIAN-CVE-2019-7397",
+          "cve": "CVE-2019-7397",
+          "summary": "In ImageMagick before 7.0.8-25 and GraphicsMagick through 1.3.31, several memory leaks exist in WritePDFImage in coders/pdf.c.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:03:23.886470238Z",
+          "published": "2019-02-05T00:29:00.510Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-7397"
+          ],
+          "fixed_versions": [
+            "1.4~hg15896"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-7397"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-19951",
+          "cve": "CVE-2019-19951",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190423 Q8, there is a heap-based buffer overflow in the function ImportRLEPixels of coders/miff.c.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:00:31.969578179Z",
+          "published": "2019-12-24T01:15:11.450Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-19951"
+          ],
+          "fixed_versions": [
+            "1.4~hg16039"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-19951"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-19950",
+          "cve": "CVE-2019-19950",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190403 Q8, there is a use-after-free in ThrowException and ThrowLoggedException of magick/error.c.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:02:14.200087524Z",
+          "published": "2019-12-24T01:15:11.387Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-19950"
+          ],
+          "fixed_versions": [
+            "1.4~hg16039"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-19950"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-12921",
+          "cve": "CVE-2019-12921",
+          "summary": "In GraphicsMagick before 1.3.32, the text filename component allows remote attackers to read arbitrary files via a crafted image because of TranslateTextEx for SVG.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
+          "aliases": [],
+          "modified": "2026-09-21T07:02:17.107837007Z",
+          "published": "2020-03-18T19:15:16.043Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-12921"
+          ],
+          "fixed_versions": [
+            "1.4~hg16039"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-12921"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11506",
+          "cve": "CVE-2019-11506",
+          "summary": "In GraphicsMagick from version 1.3.30 to 1.4 snapshot-20190403 Q8, there is a heap-based buffer overflow in the function WriteMATLABImage of coders/mat.c, which allows an attacker to cause a denial of service or possibly have unspecified other impact via a crafted image file. This is related to Expo",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:01:43.590860693Z",
+          "published": "2019-04-24T21:29:01.070Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11506"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11506"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11505",
+          "cve": "CVE-2019-11505",
+          "summary": "In GraphicsMagick from version 1.3.8 to 1.4 snapshot-20190403 Q8, there is a heap-based buffer overflow in the function WritePDBImage of coders/pdb.c, which allows an attacker to cause a denial of service or possibly have unspecified other impact via a crafted image file. This is related to MagickBi",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:01:43.979044276Z",
+          "published": "2019-04-24T21:29:00.993Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11505"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11505"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11474",
+          "cve": "CVE-2019-11474",
+          "summary": "coders/xwd.c in GraphicsMagick 1.3.31 allows attackers to cause a denial of service (floating-point exception and application crash) by crafting an XWD image file, a different vulnerability than CVE-2019-11008 and CVE-2019-11009.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:00:22.950838709Z",
+          "published": "2019-04-23T14:29:01.057Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11474"
+          ],
+          "fixed_versions": [
+            "1.4~hg15976"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11474"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11473",
+          "cve": "CVE-2019-11473",
+          "summary": "coders/xwd.c in GraphicsMagick 1.3.31 allows attackers to cause a denial of service (out-of-bounds read and application crash) by crafting an XWD image file, a different vulnerability than CVE-2019-11008 and CVE-2019-11009.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:00:22.851654720Z",
+          "published": "2019-04-23T14:29:00.930Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11473"
+          ],
+          "fixed_versions": [
+            "1.4~hg15976"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11473"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11010",
+          "cve": "CVE-2019-11010",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a memory leak in the function ReadMPCImage of coders/mpc.c, which allows attackers to cause a denial of service via a crafted image file.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:01:58.659724377Z",
+          "published": "2019-04-08T19:29:05.370Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11010"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11010"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11009",
+          "cve": "CVE-2019-11009",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer over-read in the function ReadXWDImage of coders/xwd.c, which allows attackers to cause a denial of service or information disclosure via a crafted image file.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:01:58.243563912Z",
+          "published": "2019-04-08T19:29:05.323Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11009"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11009"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11008",
+          "cve": "CVE-2019-11008",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer overflow in the function WriteXWDImage of coders/xwd.c, which allows remote attackers to cause a denial of service (application crash) or possibly have unspecified other impact via a crafted image file.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:00:36.829507487Z",
+          "published": "2019-04-08T19:29:05.277Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11008"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11008"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11007",
+          "cve": "CVE-2019-11007",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer over-read in the ReadMNGImage function of coders/png.c, which allows attackers to cause a denial of service or information disclosure via an image colormap.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:00:36.870780678Z",
+          "published": "2019-04-08T19:29:05.150Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11007"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11007"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11006",
+          "cve": "CVE-2019-11006",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a heap-based buffer over-read in the function ReadMIFFImage of coders/miff.c, which allows attackers to cause a denial of service or information disclosure via an RLE packet.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:01:58.360710093Z",
+          "published": "2019-04-08T19:29:05.087Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11006"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11006"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2019-11005",
+          "cve": "CVE-2019-11005",
+          "summary": "In GraphicsMagick 1.4 snapshot-20190322 Q8, there is a stack-based buffer overflow in the function SVGStartElement of coders/svg.c, which allows remote attackers to cause a denial of service (application crash) or possibly have unspecified other impact via a quoted font family value.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-21T07:01:58.628542095Z",
+          "published": "2019-04-08T19:29:05.027Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2019-11005"
+          ],
+          "fixed_versions": [
+            "1.4~hg15968"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2019-11005"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2018-20189",
+          "cve": "CVE-2018-20189",
+          "summary": "In GraphicsMagick 1.3.31, the ReadDIBImage function of coders/dib.c has a vulnerability allowing a crash and denial of service via a dib file that is crafted to appear with direct pixel values and also colormapping (which is not available beyond 8-bits/sample), and therefore lacks indexes initializa",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:03:57.995648635Z",
+          "published": "2018-12-17T20:29:00.247Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2018-20189"
+          ],
+          "fixed_versions": [
+            "1.4~hg15873"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2018-20189"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2018-20185",
+          "cve": "CVE-2018-20185",
+          "summary": "In GraphicsMagick 1.4 snapshot-20181209 Q8 on 32-bit platforms, there is a heap-based buffer over-read in the ReadBMPImage function of bmp.c, which allows attackers to cause a denial of service via a crafted bmp image file. This only affects GraphicsMagick installations with customized BMP limits.",
+          "severity": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:03:57.998643274Z",
+          "published": "2018-12-17T19:29:03.720Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2018-20185"
+          ],
+          "fixed_versions": [
+            "1.4~hg15880"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2018-20185"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2018-20184",
+          "cve": "CVE-2018-20184",
+          "summary": "In GraphicsMagick 1.4 snapshot-20181209 Q8, there is a heap-based buffer overflow in the WriteTGAImage function of tga.c, which allows attackers to cause a denial of service via a crafted image file, because the number of rows or columns can exceed the pixel-dimension restrictions of the TGA specifi",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:03:57.953221257Z",
+          "published": "2018-12-17T19:29:03.173Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2018-20184"
+          ],
+          "fixed_versions": [
+            "1.4~hg15873"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2018-20184"
+          ]
+        }
+      ],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2017-13736",
+          "cve": "CVE-2017-13736",
+          "summary": "There are lots of memory leaks in the GMCommand function in magick/command.c in GraphicsMagick 1.3.26 that will lead to a remote denial of service attack.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:02:40.512520921Z",
+          "published": "2017-08-29T06:29:00.577Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2017-13736"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2017-13736"
+          ]
+        }
+      ]
     },
     {
       "name": "texlive-bin",
@@ -8693,7 +8872,8 @@
         "libsynctex",
         "texlive-bin"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "DEBIAN-CVE-2026-63729",
           "cve": "CVE-2026-63729",
@@ -10173,101 +10353,6 @@
       ]
     },
     {
-      "name": "cimg",
-      "version": "3.7.6-1",
-      "upstream_version": "3.7.6",
-      "repo": "extra",
-      "packages": [
-        "cimg"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2026-47667",
-          "cve": "CVE-2026-47667",
-          "summary": "CImg Library is a C++ library for image processing. Prior to version 4.0.0 in `_load_analyze()`, the header_size field is read as an `unsigned int` from the first 4 bytes of an Analyze/NIfTI file and passed directly to `new unsigned char[header_size]` without being bounded against the actual file si",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-10-01T03:03:07.126471350Z",
-          "published": "2026-07-21T20:17:01.323Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-47667"
-          ],
-          "fixed_versions": [
-            "4.0.4"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2026-47667"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2018-7587",
-          "cve": "CVE-2018-7587",
-          "summary": "An issue was discovered in CImg v.220. DoS occurs when loading a crafted bmp image that triggers an allocation failure in load_bmp in CImg.h.",
-          "severity": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:04:00.782776472Z",
-          "published": "2018-03-01T22:29:00.393Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2018-7587"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2018-7587"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "mxml",
-      "version": "3.3.1-2",
-      "upstream_version": "3.3.1",
-      "repo": "extra",
-      "packages": [
-        "mxml",
-        "mxml-docs"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2026-88385",
-          "cve": "CVE-2026-88385",
-          "summary": "Mini-XML 4.0.5 contains a memory leak vulnerability in mxml_load_data() during malformed XML parsing. Specially crafted XML input can cause text nodes allocated by mxmlNewText() to become unlinked before a parse error transfers control to the cleanup path. These orphaned nodes are not released, resu",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-10-07T10:00:46.837033190Z",
-          "published": "2026-09-24T17:17:08.023Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-88385"
-          ],
-          "fixed_versions": [
-            "4.0.6"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2026-88385"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2018-20005",
-          "cve": "CVE-2018-20005",
-          "summary": "An issue has been found in Mini-XML (aka mxml) 2.12. It is a use-after-free in mxmlWalkNext in mxml-search.c, as demonstrated by mxmldoc.",
-          "severity": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:03:57.805014312Z",
-          "published": "2018-12-10T06:29:00.647Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2018-20005"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2018-20005"
-          ]
-        }
-      ]
-    },
-    {
       "name": "ruby-jwt",
       "version": "2.10.1-2",
       "upstream_version": "2.10.1",
@@ -10275,7 +10360,8 @@
       "packages": [
         "ruby-jwt"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "DEBIAN-CVE-2026-45363",
           "cve": "CVE-2026-45363",
@@ -10317,189 +10403,6 @@
       ]
     },
     {
-      "name": "rubygems",
-      "version": "3.6.9-1",
-      "upstream_version": "3.6.9",
-      "repo": "extra",
-      "packages": [
-        "rubygems"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2026-82455",
-          "cve": "CVE-2026-82455",
-          "summary": "RubyGems fails to re-validate path containment after filesystem symlink resolution during gem extraction. When a pre-existing symlink inside the destination directory points outside the extraction root, extracted files that appear to be written under the destination directory can instead be written ",
-          "severity": "CVSS:4.0/AV:L/AC:L/AT:N/PR:N/UI:P/VC:N/VI:H/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X",
-          "aliases": [],
-          "modified": "2026-09-08T20:00:07.809562991Z",
-          "published": "2026-08-29T14:16:38.623Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-82455"
-          ],
-          "fixed_versions": [
-            "4.0.15"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2026-82455"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2025-61594",
-          "cve": "CVE-2025-61594",
-          "summary": "URI is a module providing classes to handle Uniform Resource Identifiers. In versions 0.12.4 and earlier (bundled in Ruby 3.2 series) 0.13.2 and earlier (bundled in Ruby 3.3 series), 1.0.3 and earlier (bundled in Ruby 3.4 series), when using the + operator to combine URIs, sensitive information like",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
-          "aliases": [],
-          "modified": "2026-09-01T20:04:35.838652817Z",
-          "published": "2025-12-30T21:15:43.893Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2025-61594"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2025-61594"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "tftp-hpa",
-      "version": "5.2-11",
-      "upstream_version": "5.2",
-      "repo": "extra",
-      "packages": [
-        "tftp-hpa"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2026-85234",
-          "cve": "CVE-2026-85234",
-          "summary": "A flaw was found in tftp-hpa. When the `in.tftpd` remap engine processes an inverse remap rule that also aborts with a non-empty custom error message, it can pass invalid match offsets to the `genmatchstring()` function. This leads to out-of-bounds read/write operations. A remote, unauthenticated at",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-10-14T10:00:12.520299821Z",
-          "published": "2026-09-15T18:19:34.927Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-85234"
-          ],
-          "fixed_versions": [
-            "5.3+20251116"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2026-85234"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2026-106026",
-          "cve": "CVE-2026-106026",
-          "summary": "tftp-hpa 5.4 before 6.0 contains an out-of-bounds read vulnerability in rewrite_string() in tftpd/remap.c that walks heap memory during jump label searches. Unauthenticated remote attackers can send read or write requests whose filename matches a remap jump rule to crash the forked in.tftpd request ",
-          "severity": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X",
-          "aliases": [],
-          "modified": "2026-10-07T05:00:08.053691583Z",
-          "published": "2026-10-06T14:17:42.083Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-106026"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2026-106026"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "abcmidi",
-      "version": "2026_10_09-1",
-      "upstream_version": "2026_10_09",
-      "repo": "extra",
-      "packages": [
-        "abcmidi"
-      ],
-      "vulns": [
-        {
-          "id": "DSA-1043-1",
-          "cve": "",
-          "summary": "abcmidi - buffer overflows",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:01:18.084525Z",
-          "published": "2006-04-26T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "17",
-            "20050101"
-          ],
-          "sources": [
-            "DSA-1043-1"
-          ]
-        }
-      ],
-      "unfixed": []
-    },
-    {
-      "name": "amavisd-new",
-      "version": "2.12.3-1",
-      "upstream_version": "2.12.3",
-      "repo": "extra",
-      "packages": [
-        "amavisd-new"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2024-28054",
-          "cve": "CVE-2024-28054",
-          "summary": "Amavis before 2.12.3 and 2.13.x before 2.13.1, in part because of its use of MIME-tools, has an Interpretation Conflict (relative to some mail user agents) when there are multiple boundary parameters in a MIME email message. Consequently, there can be an incorrect check for banned files or malware.",
-          "severity": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
-          "aliases": [],
-          "modified": "2026-09-15T09:03:01.110457036Z",
-          "published": "2024-03-18T17:15:07.360Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2024-28054"
-          ],
-          "fixed_versions": [
-            "2.13.0"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2024-28054"
-          ]
-        }
-      ],
-      "unfixed": []
-    },
-    {
-      "name": "ckermit",
-      "version": "9.0.302-12",
-      "upstream_version": "9.0.302",
-      "repo": "extra",
-      "packages": [
-        "ckermit"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2025-68920",
-          "cve": "CVE-2025-68920",
-          "summary": "C-Kermit (aka ckermit) through 10.0 Beta.12 (aka 416-beta12) before 244644d allows a remote Kermit system to overwrite files on the local system, or retrieve arbitrary files from the local system.",
-          "severity": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:L",
-          "aliases": [],
-          "modified": "2026-10-08T10:00:25.628081567Z",
-          "published": "2025-12-24T22:15:43.550Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2025-68920"
-          ],
-          "fixed_versions": [
-            "416~beta12"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2025-68920"
-          ]
-        }
-      ],
-      "unfixed": []
-    },
-    {
       "name": "gnutls",
       "version": "3.8.13-3",
       "upstream_version": "3.8.13",
@@ -10507,7 +10410,8 @@
       "packages": [
         "gnutls"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "ALPINE-CVE-2017-7507",
           "cve": "CVE-2017-7507",
@@ -10538,7 +10442,8 @@
       "packages": [
         "lib32-gnutls"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "ALPINE-CVE-2017-7507",
           "cve": "CVE-2017-7507",
@@ -10569,7 +10474,8 @@
       "packages": [
         "lib32-ncurses"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "DEBIAN-CVE-2025-69720",
           "cve": "CVE-2025-69720",
@@ -10599,7 +10505,8 @@
       "packages": [
         "luajit"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "ALPINE-CVE-2020-15890",
           "cve": "CVE-2020-15890",
@@ -10629,7 +10536,8 @@
       "packages": [
         "ncurses"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "DEBIAN-CVE-2025-69720",
           "cve": "CVE-2025-69720",
@@ -10652,6 +10560,37 @@
       "unfixed": []
     },
     {
+      "name": "razor",
+      "version": "2.88-1",
+      "upstream_version": "2.88",
+      "repo": "extra",
+      "packages": [
+        "razor"
+      ],
+      "vulns": [],
+      "uncertain": [
+        {
+          "id": "DEBIAN-CVE-2005-2024",
+          "cve": "CVE-2005-2024",
+          "summary": "Vipul Razor Agents (razor-agents) before 2.70 allows remote attackers to cause a denial of service via (1) certain \"unusual HTML messages\" or (2) \"certain malformed headers\" such as Content-Type.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-30T06:47:23.202921847Z",
+          "published": "2005-06-17T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2005-2024"
+          ],
+          "fixed_versions": [
+            "2.720"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2005-2024"
+          ]
+        }
+      ],
+      "unfixed": []
+    },
+    {
       "name": "stardict",
       "version": "3.0.7-4",
       "upstream_version": "3.0.7",
@@ -10659,7 +10598,8 @@
       "packages": [
         "stardict"
       ],
-      "vulns": [
+      "vulns": [],
+      "uncertain": [
         {
           "id": "DEBIAN-CVE-2025-55014",
           "cve": "CVE-2025-55014",
@@ -10690,6 +10630,7 @@
         "gpac"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-9572",
@@ -13808,6 +13749,7 @@
         "linux-headers"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-98375",
@@ -15132,6 +15074,7 @@
         "wolfssl"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-95208",
@@ -16407,6 +16350,7 @@
         "thunderbird-i18n-zh-tw"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-110249",
@@ -17379,6 +17323,7 @@
         "assimp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-82591",
@@ -18127,6 +18072,7 @@
         "imagemagick"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-109964",
@@ -18844,6 +18790,7 @@
         "hdf5-openmpi"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-92627",
@@ -19480,6 +19427,7 @@
         "sssd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-92821",
@@ -20085,6 +20033,7 @@
         "libsoup3-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-85534",
@@ -20673,6 +20622,7 @@
         "yasm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-22653",
@@ -21213,6 +21163,7 @@
         "389-ds-base"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-9064",
@@ -21737,6 +21688,7 @@
         "rclone"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-93987",
@@ -22261,6 +22213,7 @@
         "binutils"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-91782",
@@ -22753,6 +22706,7 @@
         "nasm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-6069",
@@ -23229,6 +23183,7 @@
         "xpdf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-8107",
@@ -23673,6 +23628,7 @@
         "lxd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-97335",
@@ -24070,6 +24026,7 @@
         "python-openbabel"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-3408",
@@ -24466,6 +24423,7 @@
         "consul"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-2808",
@@ -24832,6 +24790,7 @@
         "libcurl-gnutls"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94266",
@@ -25166,6 +25125,7 @@
         "lib32-libcurl-gnutls"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94266",
@@ -25498,6 +25458,7 @@
         "libgig"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-32294",
@@ -25805,6 +25766,7 @@
         "bluez-utils"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-105460",
@@ -26089,6 +26051,7 @@
         "fontforge"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-50951",
@@ -26341,6 +26304,7 @@
         "wordpress"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-66666",
@@ -26593,6 +26557,7 @@
         "dpdk"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-93683",
@@ -26829,6 +26794,7 @@
         "openjpeg2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-39329",
@@ -27049,6 +27015,7 @@
         "pypy3"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-87910",
@@ -27352,6 +27319,7 @@
         "qemu-vmsr-helper"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-8612",
@@ -27572,6 +27540,7 @@
         "wabt"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-6275",
@@ -27793,6 +27762,7 @@
         "libcups"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-87876",
@@ -27997,6 +27967,7 @@
         "gimp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-97185",
@@ -28207,6 +28178,7 @@
         "xorg-server-xvfb"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-93536",
@@ -28414,6 +28386,7 @@
         "poppler-qt6"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-93653",
@@ -28604,6 +28577,7 @@
         "gradle-src"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-22865",
@@ -28776,6 +28750,7 @@
         "hplip"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-91106",
@@ -28948,6 +28923,7 @@
         "opendmarc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-101281",
@@ -29120,6 +29096,7 @@
         "python-tornado"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-91992",
@@ -29292,6 +29269,7 @@
         "tesseract"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88054",
@@ -29464,6 +29442,7 @@
         "ansible"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-87874",
@@ -29620,6 +29599,7 @@
         "binaryen"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-8257",
@@ -29777,6 +29757,7 @@
         "python-onnx"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-63632",
@@ -29933,6 +29914,7 @@
         "openssh"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-106589",
@@ -30089,6 +30071,7 @@
         "sleuthkit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-40026",
@@ -30246,6 +30229,7 @@
         "dcmtk-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-97059",
@@ -30386,6 +30370,7 @@
         "jython"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-4519",
@@ -30526,6 +30511,7 @@
         "libelfin"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-24180",
@@ -30666,6 +30652,7 @@
         "netdata"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-83603",
@@ -30806,6 +30793,7 @@
         "catdoc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-46345",
@@ -30932,6 +30920,7 @@
         "libelf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-1377",
@@ -31058,6 +31047,7 @@
         "lib32-glibc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-9192",
@@ -31183,6 +31173,7 @@
         "gnuplot-demos"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-3359",
@@ -31307,6 +31298,7 @@
         "lib32-libxi"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94282",
@@ -31431,6 +31423,7 @@
         "libxi"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94282",
@@ -31562,6 +31555,7 @@
         "nginx-src"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-97629",
@@ -31686,6 +31680,7 @@
         "cjson"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-87933",
@@ -31794,6 +31789,7 @@
         "cpp-httplib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-77358",
@@ -31904,6 +31900,7 @@
         "evolution-spamassassin"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88859",
@@ -32012,6 +32009,7 @@
         "ffmpeg"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-6385",
@@ -32125,6 +32123,7 @@
         "python-grpcio-tools"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-7246",
@@ -32233,6 +32232,7 @@
         "hashcat"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-68768",
@@ -32343,6 +32343,7 @@
         "kitty-terminfo"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-95835",
@@ -32451,6 +32452,7 @@
         "lmdb"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-22185",
@@ -32563,6 +32565,7 @@
         "python-mupdf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-7233",
@@ -32671,6 +32674,7 @@
         "ntp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-26555",
@@ -32779,6 +32783,7 @@
         "opencascade"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-42481",
@@ -32887,6 +32892,7 @@
         "patch"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-56289",
@@ -33009,6 +33015,7 @@
         "pcp-pmda-snmp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-16531",
@@ -33117,6 +33124,7 @@
         "wget"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-58472",
@@ -33225,6 +33233,7 @@
         "blender"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-60103",
@@ -33318,6 +33327,7 @@
         "gdb-common"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-13732",
@@ -33410,6 +33420,7 @@
         "jhead"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-90682",
@@ -33502,6 +33513,7 @@
         "krb5"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107778",
@@ -33594,6 +33606,7 @@
         "lib32-krb5"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107778",
@@ -33686,6 +33699,7 @@
         "lib32-libsndfile"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88386",
@@ -33778,6 +33792,7 @@
         "lib32-systemd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-40228",
@@ -33870,6 +33885,7 @@
         "libsndfile"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88386",
@@ -33962,6 +33978,7 @@
         "lrzip"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-9396",
@@ -34054,6 +34071,7 @@
         "m17n-lib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-109854",
@@ -34146,6 +34164,7 @@
         "mutt"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107570",
@@ -34238,6 +34257,7 @@
         "nix"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-64846",
@@ -34331,6 +34351,7 @@
         "openldap"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-22185",
@@ -34428,6 +34449,7 @@
         "systemd-ukify"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-40228",
@@ -34520,6 +34542,7 @@
         "telegram-desktop"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94488",
@@ -34612,6 +34635,7 @@
         "tinyproxy"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-55202",
@@ -34704,6 +34728,7 @@
         "anki"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-32484",
@@ -34780,6 +34805,7 @@
         "antlr4"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-13503",
@@ -34856,6 +34882,7 @@
         "aspell"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-75820",
@@ -34933,6 +34960,7 @@
         "python-capstone"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-55894",
@@ -35009,6 +35037,7 @@
         "coreutils"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-56392",
@@ -35085,6 +35114,7 @@
         "dcraw"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-19568",
@@ -35161,6 +35191,7 @@
         "etcd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-73500",
@@ -35237,6 +35268,7 @@
         "exiv2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-18898",
@@ -35313,6 +35345,7 @@
         "faust"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-37770",
@@ -35389,6 +35422,7 @@
         "gawk"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-40553",
@@ -35465,6 +35499,7 @@
         "lib32-libx11"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94285",
@@ -35556,6 +35591,7 @@
         "lib32-vulkan-virtio"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-45931",
@@ -35632,6 +35668,7 @@
         "lib32-nss"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-11698",
@@ -35708,6 +35745,7 @@
         "libwmf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2009-3546",
@@ -35784,6 +35822,7 @@
         "libx11"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94285",
@@ -35876,6 +35915,7 @@
         "vulkan-virtio"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-45931",
@@ -35952,6 +35992,7 @@
         "nnn"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-65612",
@@ -36028,6 +36069,7 @@
         "nsd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-101341",
@@ -36105,6 +36147,7 @@
         "nss"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-11698",
@@ -36181,6 +36224,7 @@
         "opendkim"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-101277",
@@ -36257,6 +36301,7 @@
         "ppp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-85495",
@@ -36333,6 +36378,7 @@
         "python-virtualenv"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-102938",
@@ -36410,6 +36456,7 @@
         "tar-scripts"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-5704",
@@ -36486,6 +36533,7 @@
         "aria2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-8367",
@@ -36546,6 +36594,7 @@
         "avahi"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-34933",
@@ -36607,6 +36656,7 @@
         "cairo-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-50422",
@@ -36667,6 +36717,7 @@
         "cpio"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-66486",
@@ -36729,6 +36780,7 @@
         "emacs-wayland"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-96442",
@@ -36789,6 +36841,7 @@
         "fio"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-30656",
@@ -36849,6 +36902,7 @@
         "gegl"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-103641",
@@ -36910,6 +36964,7 @@
         "git-zsh-completion"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-52005",
@@ -36970,6 +37025,7 @@
         "jupyter-server"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-86049",
@@ -37030,6 +37086,7 @@
         "lib32-cairo"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-50422",
@@ -37090,6 +37147,7 @@
         "netsurf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-45663",
@@ -37150,6 +37208,7 @@
         "perl"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-82560",
@@ -37210,6 +37269,7 @@
         "pgbouncer"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107350",
@@ -37271,6 +37331,7 @@
         "php-mongodb"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-81525",
@@ -37331,6 +37392,7 @@
         "phpmyadmin"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-11441",
@@ -37391,6 +37453,7 @@
         "plantuml"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-0858",
@@ -37451,6 +37514,7 @@
         "popt"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-18839",
@@ -37511,6 +37575,7 @@
         "puppet"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-27025",
@@ -37571,6 +37636,7 @@
         "python-jose"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-33664",
@@ -37631,6 +37697,7 @@
         "python-jwcrypto"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-92091",
@@ -37691,6 +37758,7 @@
         "retroarch"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-9809",
@@ -37751,6 +37819,7 @@
         "rpcbind"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94640",
@@ -37811,6 +37880,7 @@
         "tcc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-20376",
@@ -37871,6 +37941,7 @@
         "tor"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-8516",
@@ -37943,6 +38014,7 @@
         "uwsgi-plugin-zabbix"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-24795",
@@ -38003,6 +38075,7 @@
         "xdg-utils"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-52968",
@@ -38063,6 +38136,7 @@
         "yara"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88341",
@@ -38123,6 +38197,7 @@
         "zziplib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-7727",
@@ -38183,6 +38258,7 @@
         "7zip"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-47112",
@@ -38227,6 +38303,7 @@
         "alsa-lib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-96675",
@@ -38271,6 +38348,7 @@
         "ansible-core"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-89091",
@@ -38315,6 +38393,7 @@
         "apcupsd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-103436",
@@ -38359,6 +38438,7 @@
         "bison"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-56390",
@@ -38403,6 +38483,7 @@
         "botan"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-32884",
@@ -38447,6 +38528,7 @@
         "cacti"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-71287",
@@ -38491,6 +38573,7 @@
         "cadaver"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2009-3720",
@@ -38535,6 +38618,7 @@
         "caddy"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-92700",
@@ -38579,6 +38663,7 @@
         "containerd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-95838",
@@ -38624,6 +38709,7 @@
         "krun"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88265",
@@ -38668,6 +38754,7 @@
         "cups-filters"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-64612",
@@ -38712,6 +38799,7 @@
         "dash"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-102474",
@@ -38756,6 +38844,7 @@
         "discount"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-4833",
@@ -38801,6 +38890,7 @@
         "ettercap-gtk"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-9365",
@@ -38845,6 +38935,7 @@
         "freeglut"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-24259",
@@ -38889,6 +38980,7 @@
         "gifsicle"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-46009",
@@ -38933,6 +39025,7 @@
         "gnome-remote-desktop"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-96541",
@@ -38977,6 +39070,7 @@
         "grub"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-4949",
@@ -39021,6 +39115,7 @@
         "jpegoptim"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-27781",
@@ -39065,6 +39160,7 @@
         "jupyterlab"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-102904",
@@ -39109,6 +39205,7 @@
         "lib32-alsa-lib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-96675",
@@ -39153,6 +39250,7 @@
         "lib32-freeglut"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-24259",
@@ -39197,6 +39295,7 @@
         "libcupsfilters"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-64612",
@@ -39241,6 +39340,7 @@
         "libmicrohttpd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-62689",
@@ -39285,6 +39385,7 @@
         "libraw"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88387",
@@ -39329,6 +39430,7 @@
         "libsixel"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-61146",
@@ -39373,6 +39475,7 @@
         "libsolv"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-82327",
@@ -39417,6 +39520,7 @@
         "libtpms"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-85769",
@@ -39461,6 +39565,7 @@
         "libwebsockets"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-95115",
@@ -39506,6 +39611,7 @@
         "libxslt-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-7425",
@@ -39550,6 +39656,7 @@
         "m4"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-1688",
@@ -39594,6 +39701,7 @@
         "mbedtls"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-66442",
@@ -39638,6 +39746,7 @@
         "minidlna"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-51442",
@@ -39684,6 +39793,7 @@
         "zenmap"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-72712",
@@ -39728,6 +39838,7 @@
         "opencolorio"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-42450",
@@ -39772,6 +39883,7 @@
         "openvswitch"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-36499",
@@ -39816,6 +39928,7 @@
         "pam"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-54411",
@@ -39860,6 +39973,7 @@
         "phpldapadmin"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-9102",
@@ -39905,6 +40019,7 @@
         "podman-docker"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94603",
@@ -39949,6 +40064,7 @@
         "prometheus-blackbox-exporter"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-26735",
@@ -39993,6 +40109,7 @@
         "prometheus-postgres-exporter"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-83550",
@@ -40037,6 +40154,7 @@
         "python-authlib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-96760",
@@ -40081,6 +40199,7 @@
         "python-oauthlib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-49265",
@@ -40126,6 +40245,7 @@
         "qt6-xcb-private-headers"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-15037",
@@ -40170,6 +40290,7 @@
         "shadow"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-56433",
@@ -40214,6 +40335,7 @@
         "sudo"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-82474",
@@ -40258,6 +40380,7 @@
         "tcpdump"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-1010220",
@@ -40302,6 +40425,7 @@
         "tcpreplay"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-51005",
@@ -40346,6 +40470,7 @@
         "teeworlds"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-31518",
@@ -40397,6 +40522,7 @@
         "tensorflow-opt-cuda"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-55559",
@@ -40441,6 +40567,7 @@
         "tinyxml2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-50614",
@@ -40485,6 +40612,7 @@
         "unrtf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-65411",
@@ -40529,6 +40657,7 @@
         "uriparser"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-44928",
@@ -40575,6 +40704,7 @@
         "vim-runtime"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-1000382",
@@ -40619,6 +40749,7 @@
         "w3m"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-38253",
@@ -40663,6 +40794,7 @@
         "9base"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2014-1935",
@@ -40691,6 +40823,7 @@
         "abiword"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-17529",
@@ -40719,6 +40852,7 @@
         "aegisub"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-92705",
@@ -40747,6 +40881,7 @@
         "amarok"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-13152",
@@ -40775,6 +40910,7 @@
         "ansible-runner"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-103754",
@@ -40804,6 +40940,7 @@
         "apt-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2011-3374",
@@ -40832,6 +40969,7 @@
         "audiofile"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-50950",
@@ -40860,6 +40998,7 @@
         "awstats"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-10245",
@@ -40888,6 +41027,7 @@
         "barcode"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-25154",
@@ -40916,6 +41056,7 @@
         "bash-completion"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-7738",
@@ -40944,6 +41085,7 @@
         "bird"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-49943",
@@ -40972,6 +41114,7 @@
         "btrbk"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-62943",
@@ -41000,6 +41143,7 @@
         "bzip2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-42250",
@@ -41028,6 +41172,7 @@
         "bzip3"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-29417",
@@ -41056,6 +41201,7 @@
         "cifs-utils"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2014-2830",
@@ -41084,6 +41230,7 @@
         "claws-mail"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-10735",
@@ -41112,6 +41259,7 @@
         "clevis"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-109976",
@@ -41140,6 +41288,7 @@
         "cmake"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-9301",
@@ -41168,6 +41317,7 @@
         "cpanminus"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-45321",
@@ -41196,6 +41346,7 @@
         "cppcheck"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-39070",
@@ -41226,6 +41377,7 @@
         "dbus-units"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-16730",
@@ -41254,6 +41406,7 @@
         "diffutils"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-53910",
@@ -41282,6 +41435,7 @@
         "dnsmasq"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-13002",
@@ -41310,6 +41464,7 @@
         "docker-buildx"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-103433",
@@ -41338,6 +41493,7 @@
         "dokuwiki"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-33103",
@@ -41366,6 +41522,7 @@
         "dolphin"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-110236",
@@ -41394,6 +41551,7 @@
         "dovecot"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-4870",
@@ -41422,6 +41580,7 @@
         "duktape"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-12216",
@@ -41450,6 +41609,7 @@
         "efivar"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-6862",
@@ -41478,6 +41638,7 @@
         "entr"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-18370",
@@ -41507,6 +41668,7 @@
         "eog-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107651",
@@ -41568,6 +41730,7 @@
         "erlang-xmerl"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2009-0130",
@@ -41596,6 +41759,7 @@
         "expat"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-66382",
@@ -41624,6 +41788,7 @@
         "fail2ban"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-109786",
@@ -41652,6 +41817,7 @@
         "flex"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-6293",
@@ -41680,6 +41846,7 @@
         "fuse-overlayfs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-52791",
@@ -41709,6 +41876,7 @@
         "python-gdal"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-29480",
@@ -41737,6 +41905,7 @@
         "gdu"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-73480",
@@ -41765,6 +41934,7 @@
         "geary"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-13324",
@@ -41793,6 +41963,7 @@
         "gedit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-14108",
@@ -41821,6 +41992,7 @@
         "giac"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-17526",
@@ -41849,6 +42021,7 @@
         "giflib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-39742",
@@ -41878,6 +42051,7 @@
         "gnome-keybindings"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-5616",
@@ -41906,6 +42080,7 @@
         "gnome-keyring"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-19358",
@@ -41934,6 +42109,7 @@
         "gnome-settings-daemon"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-38394",
@@ -41962,6 +42138,7 @@
         "gnome-tweaks"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-74859",
@@ -41990,6 +42167,7 @@
         "gnumeric"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-97222",
@@ -42018,6 +42196,7 @@
         "graphviz"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-11023",
@@ -42046,6 +42225,7 @@
         "gsoap"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-21783",
@@ -42074,6 +42254,7 @@
         "gssproxy"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-12658",
@@ -42102,6 +42283,7 @@
         "hamster-time-tracker"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-36250",
@@ -42130,6 +42312,7 @@
         "haskell-crypton-x509"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-9648",
@@ -42158,6 +42341,7 @@
         "haskell-crypton-x509-validation"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-9648",
@@ -42186,6 +42370,7 @@
         "haskell-tls"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2011-3389",
@@ -42214,6 +42399,7 @@
         "hiredis"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88382",
@@ -42242,6 +42428,7 @@
         "httpie"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-48052",
@@ -42271,6 +42458,7 @@
         "icedtea-web-doc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2015-5236",
@@ -42299,6 +42487,7 @@
         "igmpproxy"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-50681",
@@ -42327,6 +42516,7 @@
         "in-toto"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-32076",
@@ -42355,6 +42545,7 @@
         "influxdb"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-36640",
@@ -42384,6 +42575,7 @@
         "iptables-legacy"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2012-2663",
@@ -42412,6 +42604,7 @@
         "jbig2dec"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-46361",
@@ -42440,6 +42633,7 @@
         "jbigkit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-9937",
@@ -42468,6 +42662,7 @@
         "jq"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-9403",
@@ -42496,6 +42691,7 @@
         "jupyter-notebook"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-102831",
@@ -42524,6 +42720,7 @@
         "keepassxc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-69150",
@@ -42552,6 +42749,7 @@
         "knot-resolver"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-32983",
@@ -42580,6 +42778,7 @@
         "lcms2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-29070",
@@ -42608,6 +42807,7 @@
         "leocad"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-31804",
@@ -42636,6 +42836,7 @@
         "lib32-bzip2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-42250",
@@ -42664,6 +42865,7 @@
         "lib32-expat"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-66382",
@@ -42692,6 +42894,7 @@
         "lib32-libglvnd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-45924",
@@ -42720,6 +42923,7 @@
         "lib32-libxrender"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88807",
@@ -42748,6 +42952,7 @@
         "lib32-libxtst"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94286",
@@ -42776,6 +42981,7 @@
         "lib32-nvidia-cg-toolkit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-5144",
@@ -42804,6 +43010,7 @@
         "lib32-pixman"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-37769",
@@ -42832,6 +43039,7 @@
         "lib32-util-linux"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-0563",
@@ -42860,6 +43068,7 @@
         "lib32-zlib"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-85091",
@@ -42888,6 +43097,7 @@
         "libao"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-11548",
@@ -42916,6 +43126,7 @@
         "libarchive"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-30571",
@@ -42944,6 +43155,7 @@
         "libass"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-95127",
@@ -42972,6 +43184,7 @@
         "libesmtp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-19977",
@@ -43000,6 +43213,7 @@
         "libfyaml"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88359",
@@ -43028,6 +43242,7 @@
         "libglvnd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-45924",
@@ -43056,6 +43271,7 @@
         "libhangul"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-108063",
@@ -43084,6 +43300,7 @@
         "libmatio"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-20019",
@@ -43112,6 +43329,7 @@
         "libmodplug"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-108577",
@@ -43140,6 +43358,7 @@
         "libnfs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-108985",
@@ -43168,6 +43387,7 @@
         "libre"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-50161",
@@ -43196,6 +43416,7 @@
         "librecad"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-21897",
@@ -43226,6 +43447,7 @@
         "librest-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-16615",
@@ -43254,6 +43476,7 @@
         "libsass"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-18797",
@@ -43282,6 +43505,7 @@
         "libspf2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-42118",
@@ -43310,6 +43534,7 @@
         "libtheora"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-5673",
@@ -43338,6 +43563,7 @@
         "libvncserver"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-15680",
@@ -43366,6 +43592,7 @@
         "libvterm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-20786",
@@ -43394,6 +43621,7 @@
         "libxpm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94287",
@@ -43422,6 +43650,7 @@
         "libxrender"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88807",
@@ -43450,6 +43679,7 @@
         "libxtst"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-94286",
@@ -43478,6 +43708,7 @@
         "linuxptp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-42861",
@@ -43506,6 +43737,7 @@
         "log4cxx"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-40023",
@@ -43534,6 +43766,7 @@
         "lrzsz"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-105841",
@@ -43562,6 +43795,7 @@
         "luksmeta"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107565",
@@ -43591,6 +43825,7 @@
         "lvm2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-19617",
@@ -43619,6 +43854,7 @@
         "lxc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-100395",
@@ -43647,6 +43883,7 @@
         "mako"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-41205",
@@ -43675,6 +43912,7 @@
         "man2html"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-40648",
@@ -43703,6 +43941,7 @@
         "mapnik"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-15537",
@@ -43731,6 +43970,7 @@
         "mc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-45925",
@@ -43759,6 +43999,7 @@
         "miniflux"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-108735",
@@ -43787,6 +44028,7 @@
         "miniupnpd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-107159",
@@ -43815,6 +44057,7 @@
         "mitmproxy"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-40606",
@@ -43843,6 +44086,7 @@
         "mkdocs-material"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-73295",
@@ -43873,6 +44117,7 @@
         "modemmanager-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-95622",
@@ -43901,6 +44146,7 @@
         "mold"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-3994",
@@ -43929,6 +44175,7 @@
         "monitoring-plugins"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-37154",
@@ -43957,6 +44204,7 @@
         "multipath-tools"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-89329",
@@ -43987,6 +44235,7 @@
         "mutter-docs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-108094",
@@ -44015,6 +44264,7 @@
         "nanomsg"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-97152",
@@ -44043,6 +44293,7 @@
         "neomutt"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-49395",
@@ -44071,6 +44322,7 @@
         "net-tools"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2002-1976",
@@ -44099,6 +44351,7 @@
         "netcdf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-86095",
@@ -44128,6 +44381,7 @@
         "nm-connection-editor"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-6590",
@@ -44157,6 +44411,7 @@
         "networkmanager-vpn-plugin-sstp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-91838",
@@ -44185,6 +44440,7 @@
         "npm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-0775",
@@ -44213,6 +44469,7 @@
         "nuget"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-29337",
@@ -44241,6 +44498,7 @@
         "nut"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-54161",
@@ -44269,6 +44527,7 @@
         "nvidia-cg-toolkit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-5144",
@@ -44297,6 +44556,7 @@
         "oath-toolkit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-109117",
@@ -44325,6 +44585,7 @@
         "okular"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-63729",
@@ -44353,6 +44614,7 @@
         "openconnect"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-12105",
@@ -44381,6 +44643,7 @@
         "opendoas"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-28339",
@@ -44409,6 +44672,7 @@
         "openexr"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88384",
@@ -44437,6 +44701,7 @@
         "openvpn"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-63650",
@@ -44465,6 +44730,7 @@
         "os-prober"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-5135",
@@ -44494,6 +44760,7 @@
         "packagekit"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-0987",
@@ -44522,6 +44789,7 @@
         "patchelf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-44940",
@@ -44550,6 +44818,7 @@
         "pcmanfm-qt"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-48700",
@@ -44578,6 +44847,7 @@
         "pixman"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-37769",
@@ -44606,6 +44876,7 @@
         "poco"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-45766",
@@ -44634,6 +44905,7 @@
         "postgis"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-73515",
@@ -44664,6 +44936,7 @@
         "ruby-google-protobuf"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2015-5237",
@@ -44692,6 +44965,7 @@
         "pwgen"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2013-4441",
@@ -44720,6 +44994,7 @@
         "pyenv"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-68939",
@@ -44748,6 +45023,7 @@
         "python-asyncssh"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-62949",
@@ -44776,6 +45052,7 @@
         "python-autobahn"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-77528",
@@ -44804,6 +45081,7 @@
         "python-dotenv"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-28684",
@@ -44832,6 +45110,7 @@
         "python-ecdsa"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-23342",
@@ -44860,6 +45139,7 @@
         "python-h2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-71554",
@@ -44888,6 +45168,7 @@
         "python-hpack"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-59980",
@@ -44916,6 +45197,7 @@
         "python-lupa"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-34444",
@@ -44944,6 +45226,7 @@
         "python-pip"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-13346",
@@ -44972,6 +45255,7 @@
         "python-py"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-42969",
@@ -45000,6 +45284,7 @@
         "python-pysaml2"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2016-10127",
@@ -45028,6 +45313,7 @@
         "python-rsa"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2020-25658",
@@ -45057,6 +45343,7 @@
         "qbittorrent-nox"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2023-30801",
@@ -45085,6 +45372,7 @@
         "qt6-declarative"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-12385",
@@ -45113,6 +45401,7 @@
         "quickjs-ng"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88378",
@@ -45141,6 +45430,7 @@
         "radvd"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-48715",
@@ -45169,6 +45459,7 @@
         "rapidjson"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-39684",
@@ -45197,6 +45488,7 @@
         "rbenv"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-1000047",
@@ -45225,6 +45517,7 @@
         "rccl"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-43598",
@@ -45253,6 +45546,7 @@
         "re2c"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-21232",
@@ -45281,6 +45575,7 @@
         "rebar3"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-105274",
@@ -45309,6 +45604,7 @@
         "rhythmbox"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-7185",
@@ -45337,6 +45633,7 @@
         "rrdtool"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-43958",
@@ -45368,6 +45665,7 @@
         "smbclient"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-15779",
@@ -45396,6 +45694,7 @@
         "sbc"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-16473",
@@ -45424,6 +45723,7 @@
         "scummvm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-17528",
@@ -45452,6 +45752,7 @@
         "seahorse"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2008-7320",
@@ -45480,6 +45781,7 @@
         "shim"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-19411",
@@ -45508,6 +45810,7 @@
         "simdjson"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88358",
@@ -45536,6 +45839,7 @@
         "singular"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-40299",
@@ -45564,6 +45868,7 @@
         "smartdns"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2024-42643",
@@ -45592,6 +45897,7 @@
         "spice-gtk"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2016-3066",
@@ -45620,6 +45926,7 @@
         "squid"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-12522",
@@ -45648,6 +45955,7 @@
         "strongswan"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-5389",
@@ -45676,6 +45984,7 @@
         "supervisor"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2019-12105",
@@ -45704,6 +46013,7 @@
         "swi-prolog"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-17524",
@@ -45741,6 +46051,7 @@
         "syslog-ng-sql"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-39879",
@@ -45769,6 +46080,7 @@
         "tcpflow"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-25061",
@@ -45797,6 +46109,7 @@
         "thunar"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2018-18398",
@@ -45825,6 +46138,7 @@
         "tmate"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-4751",
@@ -45853,6 +46167,7 @@
         "uglify-js"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-37598",
@@ -45881,6 +46196,7 @@
         "uncrustify"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-36189",
@@ -45909,6 +46225,7 @@
         "unzip"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2021-4217",
@@ -45937,6 +46254,7 @@
         "usbredir"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-92382",
@@ -45966,6 +46284,7 @@
         "util-linux-libs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2022-0563",
@@ -45994,6 +46313,7 @@
         "vifm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-110237",
@@ -46022,6 +46342,7 @@
         "vinyl-cache"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-93894",
@@ -46055,6 +46376,7 @@
         "virtualbox-sdk"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DSA-3699-1",
@@ -46081,6 +46403,7 @@
         "vorbis-tools"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-34253",
@@ -46109,6 +46432,7 @@
         "wine"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-48831",
@@ -46137,6 +46461,7 @@
         "x264"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2025-25467",
@@ -46165,6 +46490,7 @@
         "xdebug"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2015-10141",
@@ -46193,6 +46519,7 @@
         "xdg-user-dirs"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2017-15131",
@@ -46221,6 +46548,7 @@
         "xerces-c"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2012-0880",
@@ -46249,6 +46577,7 @@
         "xloadimage"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2006-4484",
@@ -46277,6 +46606,7 @@
         "xterm"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2006-4447",
@@ -46305,6 +46635,7 @@
         "yaml-cpp"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-75432",
@@ -46333,6 +46664,7 @@
         "zbar"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-88371",
@@ -46363,6 +46695,7 @@
         "zlib-static"
       ],
       "vulns": [],
+      "uncertain": [],
       "unfixed": [
         {
           "id": "DEBIAN-CVE-2026-85091",
