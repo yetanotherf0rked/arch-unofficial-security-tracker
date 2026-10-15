@@ -2,17 +2,10 @@ name: Update tracker
 
 on:
   schedule:
-    # Every 6 hours: OSV's exports and the Arch repos both move several times a day.
-    - cron: "17 */6 * * *"
+    - cron: "17 */6 * * *"   # best effort: GitHub may delay scheduled runs
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - archsec/**
-      - site/**
-      - update.py
-      - aliases.json
-      - .github/workflows/update.yml
 
 permissions:
   contents: read
@@ -26,28 +19,22 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: archlinux:base-devel
     steps:
+      - name: Arch tools and sync databases (core, extra, multilib)
+        run: |
+          printf '\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacman.conf
+          pacman -Syu --noconfirm --needed python expac git nodejs
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Test
         run: python -m unittest discover -s tests -t .
-
-      # Writes _site/data/advisories.json and _site/all.json. Generated data is
-      # published, not committed: the feed is rebuilt from its sources each run.
       - name: Build feed
-        run: python update.py --out _site
-
+        run: python build.py --out _site
       - name: Stage site
         run: |
           cp site/* _site/
-          cp archsec/check.py _site/arch-cve-check
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+          cp arch_cve_check.py _site/arch-cve-check
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
@@ -58,6 +45,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
