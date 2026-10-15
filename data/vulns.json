@@ -1,19 +1,19 @@
 {
-  "generated_at": 1792035193,
+  "generated_at": 1792036125,
   "sources": {
     "packages": "https://geo.mirror.pkgbuild.com/<repo>/os/x86_64/<repo>.db.tar.gz (repos: core, extra, multilib)",
-    "vulnerabilities": "OSV.dev \u2014 proxied via Debian, Ubuntu, Alpine"
+    "vulnerabilities": "OSV.dev \u2014 proxied via Debian, Alpine"
   },
-  "limitations": "Arch is not an OSV ecosystem. CVEs are discovered via OSV queries against Debian / Ubuntu / Alpine using Arch pkgbase names, then verified locally against the affected ranges in each record. CVEs with no fix anywhere yet are listed separately as unfixed. False negatives possible when Arch names a package differently from those distros; false positives possible when Arch backports a patch without a version bump.",
+  "limitations": "Arch is not an OSV ecosystem. CVEs come from the Debian / Alpine OSV data, matched by Arch pkgbase name, then verified locally against the affected ranges in each record. CVEs with no fix anywhere yet are listed separately as unfixed. False negatives possible when Arch names a package differently from those distros; false positives possible when Arch backports a patch without a version bump.",
   "stats": {
-    "affected": 365,
+    "affected": 372,
     "unfixed": 2142,
-    "fixed": 11679,
+    "fixed": 54150,
     "mismatch": 73,
-    "unknown": 0
+    "unknown": 5
   },
-  "affected_count": 25,
-  "total_vulns": 364,
+  "affected_count": 28,
+  "total_vulns": 368,
   "unfixed_count": 406,
   "total_unfixed": 2064,
   "affected": [
@@ -5654,6 +5654,340 @@
       ]
     },
     {
+      "name": "cvs",
+      "version": "1.11.23-16",
+      "upstream_version": "1.11.23",
+      "repo": "extra",
+      "packages": [
+        "cvs"
+      ],
+      "vulns": [
+        {
+          "id": "DSA-3940-1",
+          "cve": "",
+          "summary": "cvs - security update",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-03-09T01:23:19.810254Z",
+          "published": "2017-08-13T00:00:00Z",
+          "references": [],
+          "fixed_versions": [
+            "1.12.13+real"
+          ],
+          "sources": [
+            "DSA-3940-1"
+          ]
+        },
+        {
+          "id": "DSA-2407-1",
+          "cve": "",
+          "summary": "cvs - heap overflow",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-03-09T01:18:13.311487Z",
+          "published": "2012-02-09T00:00:00Z",
+          "references": [],
+          "fixed_versions": [
+            "1.12.13"
+          ],
+          "sources": [
+            "DSA-2407-1"
+          ]
+        },
+        {
+          "id": "DLA-1056-1",
+          "cve": "",
+          "summary": "cvs - security update",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-03-09T01:01:05.143321Z",
+          "published": "2017-08-13T00:00:00Z",
+          "references": [],
+          "fixed_versions": [
+            "1.12.13+real"
+          ],
+          "sources": [
+            "DLA-1056-1"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2017-12836",
+          "cve": "CVE-2017-12836",
+          "summary": "CVS 1.12.x, when configured to use SSH for remote repositories, might allow remote attackers to execute arbitrary code via a repository URL with a crafted hostname, as demonstrated by \"-oProxyCommand=id;localhost:/bar.\"",
+          "severity": "CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:03:42.627381035Z",
+          "published": "2017-08-24T14:29:00.397Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2017-12836"
+          ],
+          "fixed_versions": [
+            "1.12.13+real",
+            "1.12.12"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2017-12836",
+            "ALPINE-CVE-2017-12836"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2012-0804",
+          "cve": "CVE-2012-0804",
+          "summary": "Heap-based buffer overflow in the proxy_connect function in src/client.c in CVS 1.11 and 1.12 allows remote HTTP proxy servers to cause a denial of service (crash) and possibly execute arbitrary code via a crafted HTTP response.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-23T06:47:32.134988216Z",
+          "published": "2012-05-29T20:55:06.867Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2012-0804"
+          ],
+          "fixed_versions": [
+            "1.12.13+real",
+            "1.12.12"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2012-0804",
+            "ALPINE-CVE-2012-0804"
+          ]
+        },
+        {
+          "id": "ALPINE-CVE-2010-3846",
+          "cve": "CVE-2010-3846",
+          "summary": "Array index error in the apply_rcs_change function in rcs.c in CVS 1.11.23 allows local users to gain privileges via an RCS file containing crafted delta fragment changes that trigger a heap-based buffer overflow.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-29T06:17:55.335516246Z",
+          "published": "2010-11-05T17:00:02.530Z",
+          "references": [
+            "https://security.alpinelinux.org/vuln/CVE-2010-3846"
+          ],
+          "fixed_versions": [
+            "1.12.12"
+          ],
+          "sources": [
+            "ALPINE-CVE-2010-3846"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2005-0753",
+          "cve": "CVE-2005-0753",
+          "summary": "Buffer overflow in CVS before 1.11.20 allows remote attackers to execute arbitrary code.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-30T06:47:32.062792416Z",
+          "published": "2005-04-18T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2005-0753"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2005-0753"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-1471",
+          "cve": "CVE-2004-1471",
+          "summary": "Format string vulnerability in wrapper.c in CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16 allows remote attackers with CVSROOT commit access to cause a denial of service (application crash) and possibly execute arbitrary code via format string specifiers in a wrapper line.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:22.595548031Z",
+          "published": "2004-12-31T05:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-1471"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-1471"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-1343",
+          "cve": "CVE-2004-1343",
+          "summary": "CVS 1.12 and earlier on Debian GNU/Linux does not properly handle when a mapping for the current repository does not exist in the cvs-repouids file, which allows remote attackers to cause a denial of service (server crash).",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:36.747099481Z",
+          "published": "2004-12-31T05:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-1343"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-1343"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-1342",
+          "cve": "CVE-2004-1342",
+          "summary": "CVS 1.12 and earlier on Debian GNU/Linux, when using the repouid patch, allows remote attackers to bypass authentication via the pserver access method.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:27.197667532Z",
+          "published": "2005-04-27T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-1342"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-1342"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0778",
+          "cve": "CVE-2004-0778",
+          "summary": "CVS 1.11.x before 1.11.17, and 1.12.x before 1.12.9, allows remote attackers to determine the existence of arbitrary files and directories via the -X command for an alternate history file, which causes different error messages to be returned.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:37.980683535Z",
+          "published": "2004-10-20T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0778"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0778"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0418",
+          "cve": "CVE-2004-0418",
+          "summary": "serve_notify in CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, does not properly handle empty data lines, which may allow remote attackers to perform an \"out-of-bounds\" write for a single byte to execute arbitrary code or modify critical program data.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:36.635880080Z",
+          "published": "2004-08-06T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0418"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0418"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0417",
+          "cve": "CVE-2004-0417",
+          "summary": "Integer overflow in the \"Max-dotdot\" CVS protocol command (serve_max_dotdot) for CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, may allow remote attackers to cause a server crash, which could cause temporary data to remain undeleted and consume disk space.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:35.681047452Z",
+          "published": "2004-08-06T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0417"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0417"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0416",
+          "cve": "CVE-2004-0416",
+          "summary": "Double free vulnerability for the error_prog_name string in CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, may allow remote attackers to execute arbitrary code.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:24.504264480Z",
+          "published": "2004-08-06T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0416"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0416"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0414",
+          "cve": "CVE-2004-0414",
+          "summary": "CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, does not properly handle malformed \"Entry\" lines, which prevents a NULL terminator from being used and may lead to a denial of service (crash), modification of critical program data, or arbitrary code execution.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:20.595219548Z",
+          "published": "2004-08-06T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0414"
+          ],
+          "fixed_versions": [
+            "1.12.9"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0414"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0405",
+          "cve": "CVE-2004-0405",
+          "summary": "CVS before 1.11 allows CVS clients to read arbitrary files via .. (dot dot) sequences in filenames via CVS client requests, a different vulnerability than CVE-2004-0180.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:36.697164629Z",
+          "published": "2004-06-01T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0405"
+          ],
+          "fixed_versions": [
+            "1.12.5"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0405"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0396",
+          "cve": "CVE-2004-0396",
+          "summary": "Heap-based buffer overflow in CVS 1.11.x up to 1.11.15, and 1.12.x up to 1.12.7, when using the pserver mechanism allows remote attackers to execute arbitrary code via Entry lines.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:37.519784504Z",
+          "published": "2004-06-14T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0396"
+          ],
+          "fixed_versions": [
+            "1.12.5"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0396"
+          ]
+        },
+        {
+          "id": "DEBIAN-CVE-2004-0180",
+          "cve": "CVE-2004-0180",
+          "summary": "The client for CVS before 1.11 allows a remote malicious CVS server to create arbitrary files using certain RCS diff files that use absolute pathnames during checkouts or updates, a different vulnerability than CVE-2004-0405.",
+          "severity": "",
+          "aliases": [],
+          "modified": "2026-09-15T06:47:20.259516339Z",
+          "published": "2004-06-01T04:00:00Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2004-0180"
+          ],
+          "fixed_versions": [
+            "1.12.5"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2004-0180"
+          ]
+        }
+      ],
+      "unfixed": []
+    },
+    {
       "name": "graphicsmagick",
       "version": "1.3.49-2",
       "upstream_version": "1.3.49",
@@ -5987,318 +6321,6 @@
           ]
         }
       ]
-    },
-    {
-      "name": "cvs",
-      "version": "1.11.23-16",
-      "upstream_version": "1.11.23",
-      "repo": "extra",
-      "packages": [
-        "cvs"
-      ],
-      "vulns": [
-        {
-          "id": "DSA-3940-1",
-          "cve": "",
-          "summary": "cvs - security update",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:23:19.810254Z",
-          "published": "2017-08-13T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "1.12.13+real"
-          ],
-          "sources": [
-            "DSA-3940-1"
-          ]
-        },
-        {
-          "id": "DSA-2407-1",
-          "cve": "",
-          "summary": "cvs - heap overflow",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:18:13.311487Z",
-          "published": "2012-02-09T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "1.12.13"
-          ],
-          "sources": [
-            "DSA-2407-1"
-          ]
-        },
-        {
-          "id": "DLA-1056-1",
-          "cve": "",
-          "summary": "cvs - security update",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-03-09T01:01:05.143321Z",
-          "published": "2017-08-13T00:00:00Z",
-          "references": [],
-          "fixed_versions": [
-            "1.12.13+real"
-          ],
-          "sources": [
-            "DLA-1056-1"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2017-12836",
-          "cve": "CVE-2017-12836",
-          "summary": "CVS 1.12.x, when configured to use SSH for remote repositories, might allow remote attackers to execute arbitrary code via a repository URL with a crafted hostname, as demonstrated by \"-oProxyCommand=id;localhost:/bar.\"",
-          "severity": "CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:03:42.627381035Z",
-          "published": "2017-08-24T14:29:00.397Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2017-12836"
-          ],
-          "fixed_versions": [
-            "1.12.13+real"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2017-12836"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2012-0804",
-          "cve": "CVE-2012-0804",
-          "summary": "Heap-based buffer overflow in the proxy_connect function in src/client.c in CVS 1.11 and 1.12 allows remote HTTP proxy servers to cause a denial of service (crash) and possibly execute arbitrary code via a crafted HTTP response.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-23T06:47:32.134988216Z",
-          "published": "2012-05-29T20:55:06.867Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2012-0804"
-          ],
-          "fixed_versions": [
-            "1.12.13+real"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2012-0804"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2005-0753",
-          "cve": "CVE-2005-0753",
-          "summary": "Buffer overflow in CVS before 1.11.20 allows remote attackers to execute arbitrary code.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-30T06:47:32.062792416Z",
-          "published": "2005-04-18T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2005-0753"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2005-0753"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-1471",
-          "cve": "CVE-2004-1471",
-          "summary": "Format string vulnerability in wrapper.c in CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16 allows remote attackers with CVSROOT commit access to cause a denial of service (application crash) and possibly execute arbitrary code via format string specifiers in a wrapper line.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:22.595548031Z",
-          "published": "2004-12-31T05:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-1471"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-1471"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-1343",
-          "cve": "CVE-2004-1343",
-          "summary": "CVS 1.12 and earlier on Debian GNU/Linux does not properly handle when a mapping for the current repository does not exist in the cvs-repouids file, which allows remote attackers to cause a denial of service (server crash).",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:36.747099481Z",
-          "published": "2004-12-31T05:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-1343"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-1343"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-1342",
-          "cve": "CVE-2004-1342",
-          "summary": "CVS 1.12 and earlier on Debian GNU/Linux, when using the repouid patch, allows remote attackers to bypass authentication via the pserver access method.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:27.197667532Z",
-          "published": "2005-04-27T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-1342"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-1342"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0778",
-          "cve": "CVE-2004-0778",
-          "summary": "CVS 1.11.x before 1.11.17, and 1.12.x before 1.12.9, allows remote attackers to determine the existence of arbitrary files and directories via the -X command for an alternate history file, which causes different error messages to be returned.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:37.980683535Z",
-          "published": "2004-10-20T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0778"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0778"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0418",
-          "cve": "CVE-2004-0418",
-          "summary": "serve_notify in CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, does not properly handle empty data lines, which may allow remote attackers to perform an \"out-of-bounds\" write for a single byte to execute arbitrary code or modify critical program data.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:36.635880080Z",
-          "published": "2004-08-06T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0418"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0418"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0417",
-          "cve": "CVE-2004-0417",
-          "summary": "Integer overflow in the \"Max-dotdot\" CVS protocol command (serve_max_dotdot) for CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, may allow remote attackers to cause a server crash, which could cause temporary data to remain undeleted and consume disk space.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:35.681047452Z",
-          "published": "2004-08-06T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0417"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0417"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0416",
-          "cve": "CVE-2004-0416",
-          "summary": "Double free vulnerability for the error_prog_name string in CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, may allow remote attackers to execute arbitrary code.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:24.504264480Z",
-          "published": "2004-08-06T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0416"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0416"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0414",
-          "cve": "CVE-2004-0414",
-          "summary": "CVS 1.12.x through 1.12.8, and 1.11.x through 1.11.16, does not properly handle malformed \"Entry\" lines, which prevents a NULL terminator from being used and may lead to a denial of service (crash), modification of critical program data, or arbitrary code execution.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:20.595219548Z",
-          "published": "2004-08-06T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0414"
-          ],
-          "fixed_versions": [
-            "1.12.9"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0414"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0405",
-          "cve": "CVE-2004-0405",
-          "summary": "CVS before 1.11 allows CVS clients to read arbitrary files via .. (dot dot) sequences in filenames via CVS client requests, a different vulnerability than CVE-2004-0180.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:36.697164629Z",
-          "published": "2004-06-01T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0405"
-          ],
-          "fixed_versions": [
-            "1.12.5"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0405"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0396",
-          "cve": "CVE-2004-0396",
-          "summary": "Heap-based buffer overflow in CVS 1.11.x up to 1.11.15, and 1.12.x up to 1.12.7, when using the pserver mechanism allows remote attackers to execute arbitrary code via Entry lines.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:37.519784504Z",
-          "published": "2004-06-14T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0396"
-          ],
-          "fixed_versions": [
-            "1.12.5"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0396"
-          ]
-        },
-        {
-          "id": "DEBIAN-CVE-2004-0180",
-          "cve": "CVE-2004-0180",
-          "summary": "The client for CVS before 1.11 allows a remote malicious CVS server to create arbitrary files using certain RCS diff files that use absolute pathnames during checkouts or updates, a different vulnerability than CVE-2004-0405.",
-          "severity": "",
-          "aliases": [],
-          "modified": "2026-09-15T06:47:20.259516339Z",
-          "published": "2004-06-01T04:00:00Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2004-0180"
-          ],
-          "fixed_versions": [
-            "1.12.5"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2004-0180"
-          ]
-        }
-      ],
-      "unfixed": []
     },
     {
       "name": "busybox",
@@ -8455,6 +8477,72 @@
       "unfixed": []
     },
     {
+      "name": "lib32-lcms2",
+      "version": "2.17-1",
+      "upstream_version": "2.17",
+      "repo": "multilib",
+      "packages": [
+        "lib32-lcms2"
+      ],
+      "vulns": [
+        {
+          "id": "DEBIAN-CVE-2026-42798",
+          "cve": "CVE-2026-42798",
+          "summary": "Little CMS (lcms2) 2.16 through 2.18 before 2.19 has an integer overflow in ParseCube in cmscgats.c.",
+          "severity": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:L",
+          "aliases": [],
+          "modified": "2026-10-01T03:03:22.976139229Z",
+          "published": "2026-04-30T07:16:37.423Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2026-42798"
+          ],
+          "fixed_versions": [
+            "2.16",
+            "2.19.1"
+          ],
+          "sources": [
+            "DEBIAN-CVE-2026-42798"
+          ]
+        },
+        {
+          "id": "ALPINE-CVE-2026-41254",
+          "cve": "CVE-2026-41254",
+          "summary": "Little CMS (lcms2) through 2.18 has an integer overflow in CubeSize in cmslut.c because the overflow check is performed after the multiplication.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-10-01T02:17:49.283414077Z",
+          "published": "2026-04-18T07:16:10.807Z",
+          "references": [
+            "https://security.alpinelinux.org/vuln/CVE-2026-41254"
+          ],
+          "fixed_versions": [
+            "2.19"
+          ],
+          "sources": [
+            "ALPINE-CVE-2026-41254"
+          ]
+        }
+      ],
+      "unfixed": [
+        {
+          "id": "DEBIAN-CVE-2025-29070",
+          "cve": "CVE-2025-29070",
+          "summary": "A heap buffer overflow vulnerability has been identified in thesmooth2() in cmsgamma.c in lcms2-2.16 which allows a remote attacker to cause a denial of service. NOTE: the Supplier disputes this because \"this is not exploitable as this function is never called on normal color management, is there on",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-01T20:05:45.395904910Z",
+          "published": "2025-04-01T21:15:44.023Z",
+          "references": [
+            "https://security-tracker.debian.org/tracker/CVE-2025-29070"
+          ],
+          "fixed_versions": [],
+          "sources": [
+            "DEBIAN-CVE-2025-29070"
+          ]
+        }
+      ]
+    },
+    {
       "name": "gitsign",
       "version": "0.14.0-2",
       "upstream_version": "0.14.0",
@@ -10132,54 +10220,6 @@
       ]
     },
     {
-      "name": "lib32-lcms2",
-      "version": "2.17-1",
-      "upstream_version": "2.17",
-      "repo": "multilib",
-      "packages": [
-        "lib32-lcms2"
-      ],
-      "vulns": [
-        {
-          "id": "DEBIAN-CVE-2026-42798",
-          "cve": "CVE-2026-42798",
-          "summary": "Little CMS (lcms2) 2.16 through 2.18 before 2.19 has an integer overflow in ParseCube in cmscgats.c.",
-          "severity": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:L",
-          "aliases": [],
-          "modified": "2026-10-01T03:03:22.976139229Z",
-          "published": "2026-04-30T07:16:37.423Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2026-42798"
-          ],
-          "fixed_versions": [
-            "2.16",
-            "2.19.1"
-          ],
-          "sources": [
-            "DEBIAN-CVE-2026-42798"
-          ]
-        }
-      ],
-      "unfixed": [
-        {
-          "id": "DEBIAN-CVE-2025-29070",
-          "cve": "CVE-2025-29070",
-          "summary": "A heap buffer overflow vulnerability has been identified in thesmooth2() in cmsgamma.c in lcms2-2.16 which allows a remote attacker to cause a denial of service. NOTE: the Supplier disputes this because \"this is not exploitable as this function is never called on normal color management, is there on",
-          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-          "aliases": [],
-          "modified": "2026-09-01T20:05:45.395904910Z",
-          "published": "2025-04-01T21:15:44.023Z",
-          "references": [
-            "https://security-tracker.debian.org/tracker/CVE-2025-29070"
-          ],
-          "fixed_versions": [],
-          "sources": [
-            "DEBIAN-CVE-2025-29070"
-          ]
-        }
-      ]
-    },
-    {
       "name": "mxml",
       "version": "3.3.1-2",
       "upstream_version": "3.3.1",
@@ -10460,6 +10500,68 @@
       "unfixed": []
     },
     {
+      "name": "gnutls",
+      "version": "3.8.13-3",
+      "upstream_version": "3.8.13",
+      "repo": "core",
+      "packages": [
+        "gnutls"
+      ],
+      "vulns": [
+        {
+          "id": "ALPINE-CVE-2017-7507",
+          "cve": "CVE-2017-7507",
+          "summary": "GnuTLS version 3.5.12 and earlier is vulnerable to a NULL pointer dereference while decoding a status response TLS extension with valid contents. This could lead to a crash of the GnuTLS server application.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-06-15T18:18:07.032135813Z",
+          "published": "2017-06-16T19:29:00.190Z",
+          "references": [
+            "https://security.alpinelinux.org/vuln/CVE-2017-7507"
+          ],
+          "fixed_versions": [
+            "3.5.13",
+            "3.14.17"
+          ],
+          "sources": [
+            "ALPINE-CVE-2017-7507"
+          ]
+        }
+      ],
+      "unfixed": []
+    },
+    {
+      "name": "lib32-gnutls",
+      "version": "3.8.13-3",
+      "upstream_version": "3.8.13",
+      "repo": "multilib",
+      "packages": [
+        "lib32-gnutls"
+      ],
+      "vulns": [
+        {
+          "id": "ALPINE-CVE-2017-7507",
+          "cve": "CVE-2017-7507",
+          "summary": "GnuTLS version 3.5.12 and earlier is vulnerable to a NULL pointer dereference while decoding a status response TLS extension with valid contents. This could lead to a crash of the GnuTLS server application.",
+          "severity": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-06-15T18:18:07.032135813Z",
+          "published": "2017-06-16T19:29:00.190Z",
+          "references": [
+            "https://security.alpinelinux.org/vuln/CVE-2017-7507"
+          ],
+          "fixed_versions": [
+            "3.5.13",
+            "3.14.17"
+          ],
+          "sources": [
+            "ALPINE-CVE-2017-7507"
+          ]
+        }
+      ],
+      "unfixed": []
+    },
+    {
       "name": "lib32-ncurses",
       "version": "6.6-2",
       "upstream_version": "6.6",
@@ -10484,6 +10586,36 @@
           ],
           "sources": [
             "DEBIAN-CVE-2025-69720"
+          ]
+        }
+      ],
+      "unfixed": []
+    },
+    {
+      "name": "luajit",
+      "version": "2.1.1791988261+2a8e017-1",
+      "upstream_version": "2.1.1791988261+2a8e017",
+      "repo": "extra",
+      "packages": [
+        "luajit"
+      ],
+      "vulns": [
+        {
+          "id": "ALPINE-CVE-2020-15890",
+          "cve": "CVE-2020-15890",
+          "summary": "LuaJit through 2.1.0-beta3 has an out-of-bounds read because __gc handler frame traversal is mishandled.",
+          "severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          "aliases": [],
+          "modified": "2026-09-11T10:17:51.390302293Z",
+          "published": "2020-07-21T22:15:12.197Z",
+          "references": [
+            "https://security.alpinelinux.org/vuln/CVE-2020-15890"
+          ],
+          "fixed_versions": [
+            "2.2.0"
+          ],
+          "sources": [
+            "ALPINE-CVE-2020-15890"
           ]
         }
       ],
@@ -36043,7 +36175,7 @@
     {
       "name": "opendkim",
       "version": "2.11.0beta2-1",
-      "upstream_version": "2.11.0beta2",
+      "upstream_version": "2.11.0~beta2",
       "repo": "extra",
       "packages": [
         "opendkim"
@@ -36408,7 +36540,7 @@
     {
       "name": "avahi",
       "version": "1:0.9rc5-1",
-      "upstream_version": "0.9rc5",
+      "upstream_version": "0.9~rc5",
       "repo": "extra",
       "packages": [
         "avahi"
